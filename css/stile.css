@@ -5,11 +5,25 @@
 	float : right;
 }
 #img_convenction{
-	width:80%;
+	width:60%;
 }
 #descrizione{
 	
 }
-#allegati{
-	background-color:green;
+#contenuto_testo{
+	right:5%;
+	margin-top:5%;
 }
+#contenuto_img{
+	left: 5%;
+    margin-top: 2%;
+}
+#contenuto_allegati{
+	left:5%;
+}
+ul{	
+	list-style-type: none;
+}
+#carouselExampleIndicators{
+	width:80%;
+}	
