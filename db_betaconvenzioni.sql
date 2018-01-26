@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Gen 24, 2018 alle 11:35
+-- Creato il: Gen 26, 2018 alle 10:41
 -- Versione del server: 10.1.29-MariaDB
 -- Versione PHP: 7.1.12
 
@@ -45,6 +45,14 @@ CREATE TABLE `tbl_categorie` (
   `Nome` varchar(250) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dump dei dati per la tabella `tbl_categorie`
+--
+
+INSERT INTO `tbl_categorie` (`IdCategoria`, `Nome`) VALUES
+(1, 'Libri'),
+(2, 'Musica');
+
 -- --------------------------------------------------------
 
 --
@@ -54,12 +62,20 @@ CREATE TABLE `tbl_categorie` (
 CREATE TABLE `tbl_convenzioni` (
   `IdConvenzione` int(11) NOT NULL,
   `Titolo` varchar(250) NOT NULL,
-  `Descrizione` varchar(250) NOT NULL,
+  `Descrizione` longtext NOT NULL,
   `Posizione` varchar(250) NOT NULL,
   `DataCreazione` date NOT NULL,
   `DataScadenza` date NOT NULL,
   `IdCategoria` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dump dei dati per la tabella `tbl_convenzioni`
+--
+
+INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Posizione`, `DataCreazione`, `DataScadenza`, `IdCategoria`) VALUES
+(1, 'Convenzione 1', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', '45.076184|7.579905', '2018-01-26', '0000-00-00', 1),
+(2, 'Convenzione 2', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', '45.065193|7.553730', '2018-01-08', '2018-03-05', 2);
 
 -- --------------------------------------------------------
 
@@ -85,6 +101,14 @@ CREATE TABLE `tbl_immagini` (
   `Ordine` int(11) NOT NULL,
   `IdConvenzione` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dump dei dati per la tabella `tbl_immagini`
+--
+
+INSERT INTO `tbl_immagini` (`IdImmagine`, `NomeFile`, `Ordine`, `IdConvenzione`) VALUES
+(1, 'i1.jpg', 0, 1),
+(2, 'i5.jpg', 0, 2);
 
 -- --------------------------------------------------------
 
@@ -183,19 +207,19 @@ ALTER TABLE `tbl_allegati`
 -- AUTO_INCREMENT per la tabella `tbl_categorie`
 --
 ALTER TABLE `tbl_categorie`
-  MODIFY `IdCategoria` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `IdCategoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT per la tabella `tbl_convenzioni`
 --
 ALTER TABLE `tbl_convenzioni`
-  MODIFY `IdConvenzione` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `IdConvenzione` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT per la tabella `tbl_immagini`
 --
 ALTER TABLE `tbl_immagini`
-  MODIFY `IdImmagine` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `IdImmagine` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT per la tabella `tbl_utenti`
