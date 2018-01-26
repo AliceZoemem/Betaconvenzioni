@@ -1,13 +1,15 @@
 -- phpMyAdmin SQL Dump
--- version 4.4.14
--- http://www.phpmyadmin.net
+-- version 4.7.4
+-- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Gen 25, 2018 alle 13:56
--- Versione del server: 5.6.26
--- Versione PHP: 5.6.12
+-- Creato il: Gen 24, 2018 alle 11:35
+-- Versione del server: 10.1.29-MariaDB
+-- Versione PHP: 7.1.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
 SET time_zone = "+00:00";
 
 
@@ -26,22 +28,11 @@ SET time_zone = "+00:00";
 -- Struttura della tabella `tbl_allegati`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_allegati` (
+CREATE TABLE `tbl_allegati` (
   `IdAllegato` int(11) NOT NULL,
   `NomeFile` varchar(250) NOT NULL,
   `IdConvenzione` int(11) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
-
---
--- Dump dei dati per la tabella `tbl_allegati`
---
-
-INSERT INTO `tbl_allegati` (`IdAllegato`, `NomeFile`, `IdConvenzione`) VALUES
-(1, '@900 - Copia.pdf', 1),
-(2, '1984-it.pdf', 1),
-(3, 'animalfarmit.pdf', 1),
-(4, 'l-agnese-va-a-morire-8806174843.pdf', 1),
-(5, 'BraveNewWorld.pdf', 2);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -49,18 +40,10 @@ INSERT INTO `tbl_allegati` (`IdAllegato`, `NomeFile`, `IdConvenzione`) VALUES
 -- Struttura della tabella `tbl_categorie`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_categorie` (
+CREATE TABLE `tbl_categorie` (
   `IdCategoria` int(11) NOT NULL,
   `Nome` varchar(250) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
-
---
--- Dump dei dati per la tabella `tbl_categorie`
---
-
-INSERT INTO `tbl_categorie` (`IdCategoria`, `Nome`) VALUES
-(1, 'automobili'),
-(2, 'sport');
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -68,7 +51,7 @@ INSERT INTO `tbl_categorie` (`IdCategoria`, `Nome`) VALUES
 -- Struttura della tabella `tbl_convenzioni`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_convenzioni` (
+CREATE TABLE `tbl_convenzioni` (
   `IdConvenzione` int(11) NOT NULL,
   `Titolo` varchar(250) NOT NULL,
   `Descrizione` varchar(250) NOT NULL,
@@ -76,16 +59,7 @@ CREATE TABLE IF NOT EXISTS `tbl_convenzioni` (
   `DataCreazione` date NOT NULL,
   `DataScadenza` date NOT NULL,
   `IdCategoria` int(11) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
-
---
--- Dump dei dati per la tabella `tbl_convenzioni`
---
-
-INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Posizione`, `DataCreazione`, `DataScadenza`, `IdCategoria`) VALUES
-(1, 'conv1', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure do', '45.067507|7.583635', '2018-01-25', '2018-04-26', 1),
-(2, 'Convenzione2', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure do', '45.067507|7.583635', '2018-01-09', '2018-10-05', 1),
-(3, 'conv3', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure do', '45.070242|7.585244', '2018-01-01', '2018-01-22', 2);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -93,7 +67,7 @@ INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Posizi
 -- Struttura della tabella `tbl_feedback`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_feedback` (
+CREATE TABLE `tbl_feedback` (
   `IdUtente` int(11) NOT NULL,
   `IdConvenzione` int(11) NOT NULL,
   `Voto` int(11) NOT NULL
@@ -105,24 +79,12 @@ CREATE TABLE IF NOT EXISTS `tbl_feedback` (
 -- Struttura della tabella `tbl_immagini`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_immagini` (
+CREATE TABLE `tbl_immagini` (
   `IdImmagine` int(11) NOT NULL,
   `NomeFile` varchar(250) NOT NULL,
   `Ordine` int(11) NOT NULL,
   `IdConvenzione` int(11) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
-
---
--- Dump dei dati per la tabella `tbl_immagini`
---
-
-INSERT INTO `tbl_immagini` (`IdImmagine`, `NomeFile`, `Ordine`, `IdConvenzione`) VALUES
-(1, 'i1.jpg', 1, 1),
-(2, 'i2.jpg', 2, 1),
-(3, 'i3.jpg', 3, 1),
-(4, 'i4.jpg', 4, 1),
-(5, 'i5.jpg', 1, 2),
-(6, 'i6.jpg', 2, 2);
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -130,7 +92,7 @@ INSERT INTO `tbl_immagini` (`IdImmagine`, `NomeFile`, `Ordine`, `IdConvenzione`)
 -- Struttura della tabella `tbl_log`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_log` (
+CREATE TABLE `tbl_log` (
   `IdUtente` int(11) NOT NULL,
   `IdConvenzione` int(11) NOT NULL,
   `Contatore` int(11) NOT NULL
@@ -142,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `tbl_log` (
 -- Struttura della tabella `tbl_utenti`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_utenti` (
+CREATE TABLE `tbl_utenti` (
   `IdUtente` int(11) NOT NULL,
   `Cognome` varchar(250) NOT NULL,
   `Nome` varchar(250) NOT NULL,
@@ -151,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `tbl_utenti` (
   `Posizione` varchar(250) NOT NULL,
   `IsAmminstratore` tinyint(1) NOT NULL,
   `Attivo` tinyint(1) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dump dei dati per la tabella `tbl_utenti`
@@ -215,27 +177,33 @@ ALTER TABLE `tbl_utenti`
 -- AUTO_INCREMENT per la tabella `tbl_allegati`
 --
 ALTER TABLE `tbl_allegati`
-  MODIFY `IdAllegato` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
+  MODIFY `IdAllegato` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `tbl_categorie`
 --
 ALTER TABLE `tbl_categorie`
-  MODIFY `IdCategoria` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
+  MODIFY `IdCategoria` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `tbl_convenzioni`
 --
 ALTER TABLE `tbl_convenzioni`
-  MODIFY `IdConvenzione` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
+  MODIFY `IdConvenzione` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `tbl_immagini`
 --
 ALTER TABLE `tbl_immagini`
-  MODIFY `IdImmagine` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=7;
+  MODIFY `IdImmagine` int(11) NOT NULL AUTO_INCREMENT;
+
 --
 -- AUTO_INCREMENT per la tabella `tbl_utenti`
 --
 ALTER TABLE `tbl_utenti`
-  MODIFY `IdUtente` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=5;
+  MODIFY `IdUtente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
