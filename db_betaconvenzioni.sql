@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Gen 30, 2018 alle 10:41
+-- Creato il: Gen 30, 2018 alle 10:57
 -- Versione del server: 10.1.30-MariaDB
 -- Versione PHP: 5.6.33
 
@@ -24,9 +24,17 @@ SET time_zone = "+00:00";
 
 DELIMITER $$
 --
+-- Procedure
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `vw_ConvenzioniPerUtente` (IN `User` INT)  NO SQL
+SELECT tbl_convenzioni.*, (SELECT fnc_CalculateDistance (tbl_utenti.Lat, tbl_utenti.Lng, tbl_convenzioni.Lat, tbl_convenzioni.Lng)) AS Distance  FROM `tbl_convenzioni` INNER JOIN tbl_utenti
+WHERE tbl_utenti.IdUtente = User
+ORDER BY (SELECT fnc_CalculateDistance (tbl_utenti.Lat, tbl_utenti.Lng, tbl_convenzioni.Lat, tbl_convenzioni.Lng) AS Distance)$$
+
+--
 -- Funzioni
 --
-CREATE DEFINER=`root`@`localhost` FUNCTION `sp_CalculateDistance` (`lat1` FLOAT, `lng1` FLOAT, `lat2` FLOAT, `lng2` FLOAT) RETURNS FLOAT NO SQL
+CREATE DEFINER=`root`@`localhost` FUNCTION `fnc_CalculateDistance` (`lat1` FLOAT, `lng1` FLOAT, `lat2` FLOAT, `lng2` FLOAT) RETURNS FLOAT NO SQL
     DETERMINISTIC
 RETURN 6371 * 2 * ASIN(SQRT(
             POWER(SIN((lat1 - abs(lat2)) * pi()/180 / 2),
@@ -89,8 +97,8 @@ CREATE TABLE `tbl_convenzioni` (
 --
 
 INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Lat`, `Lng`, `DataCreazione`, `DataScadenza`, `IdCategoria`) VALUES
-(1, 'Convenzione 1', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 0, 0, '2018-01-26', '0000-00-00', 1),
-(2, 'Convenzione 2', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 0, 0, '2018-01-08', '2018-03-05', 2);
+(1, 'Convenzione 1', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 45.0722, 7.59332, '2018-01-26', '0000-00-00', 1),
+(2, 'Convenzione 2', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 45.058, 7.60845, '2018-01-08', '2018-03-05', 2);
 
 -- --------------------------------------------------------
 
@@ -160,8 +168,8 @@ CREATE TABLE `tbl_utenti` (
 --
 
 INSERT INTO `tbl_utenti` (`IdUtente`, `Cognome`, `Nome`, `Email`, `Password`, `Lat`, `Lng`, `IsAmminstratore`, `Attivo`) VALUES
-(1, 'aa', 'aa', 'aa@gmail.com', '0cc175b9c0f1b6a831c399e269772661', 0, 0, 0, 1),
-(2, 'bb', 'bb', 'bb@gmail.com', '92eb5ffee6ae2fec3ad71c777531578f', 0, 0, 0, 1);
+(1, 'aa', 'aa', 'aa@gmail.com', '0cc175b9c0f1b6a831c399e269772661', 45.0568, 7.60644, 0, 1),
+(2, 'bb', 'bb', 'bb@gmail.com', '92eb5ffee6ae2fec3ad71c777531578f', 45.0893, 7.57235, 0, 1);
 
 --
 -- Indici per le tabelle scaricate
