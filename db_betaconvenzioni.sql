@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Gen 30, 2018 alle 09:11
--- Versione del server: 10.1.29-MariaDB
--- Versione PHP: 7.1.12
+-- Creato il: Gen 30, 2018 alle 10:41
+-- Versione del server: 10.1.30-MariaDB
+-- Versione PHP: 5.6.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -77,7 +77,8 @@ CREATE TABLE `tbl_convenzioni` (
   `IdConvenzione` int(11) NOT NULL,
   `Titolo` varchar(250) NOT NULL,
   `Descrizione` longtext NOT NULL,
-  `Posizione` varchar(250) NOT NULL,
+  `Lat` float NOT NULL,
+  `Lng` float NOT NULL,
   `DataCreazione` date NOT NULL,
   `DataScadenza` date NOT NULL,
   `IdCategoria` int(11) NOT NULL
@@ -87,9 +88,9 @@ CREATE TABLE `tbl_convenzioni` (
 -- Dump dei dati per la tabella `tbl_convenzioni`
 --
 
-INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Posizione`, `DataCreazione`, `DataScadenza`, `IdCategoria`) VALUES
-(1, 'Convenzione 1', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', '45.076184|7.579905', '2018-01-26', '0000-00-00', 1),
-(2, 'Convenzione 2', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', '45.065193|7.553730', '2018-01-08', '2018-03-05', 2);
+INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Lat`, `Lng`, `DataCreazione`, `DataScadenza`, `IdCategoria`) VALUES
+(1, 'Convenzione 1', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 0, 0, '2018-01-26', '0000-00-00', 1),
+(2, 'Convenzione 2', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 0, 0, '2018-01-08', '2018-03-05', 2);
 
 -- --------------------------------------------------------
 
@@ -148,7 +149,8 @@ CREATE TABLE `tbl_utenti` (
   `Nome` varchar(250) NOT NULL,
   `Email` varchar(250) NOT NULL,
   `Password` varchar(250) NOT NULL,
-  `Posizione` varchar(250) NOT NULL,
+  `Lat` float NOT NULL,
+  `Lng` float NOT NULL,
   `IsAmminstratore` tinyint(1) NOT NULL,
   `Attivo` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -157,9 +159,9 @@ CREATE TABLE `tbl_utenti` (
 -- Dump dei dati per la tabella `tbl_utenti`
 --
 
-INSERT INTO `tbl_utenti` (`IdUtente`, `Cognome`, `Nome`, `Email`, `Password`, `Posizione`, `IsAmminstratore`, `Attivo`) VALUES
-(1, 'aa', 'aa', 'aa@gmail.com', '0cc175b9c0f1b6a831c399e269772661', '45.067628|7.585748', 0, 1),
-(2, 'bb', 'bb', 'bb@gmail.com', '92eb5ffee6ae2fec3ad71c777531578f', '45.067628|7.585748', 0, 1);
+INSERT INTO `tbl_utenti` (`IdUtente`, `Cognome`, `Nome`, `Email`, `Password`, `Lat`, `Lng`, `IsAmminstratore`, `Attivo`) VALUES
+(1, 'aa', 'aa', 'aa@gmail.com', '0cc175b9c0f1b6a831c399e269772661', 0, 0, 0, 1),
+(2, 'bb', 'bb', 'bb@gmail.com', '92eb5ffee6ae2fec3ad71c777531578f', 0, 0, 0, 1);
 
 --
 -- Indici per le tabelle scaricate
