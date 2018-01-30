@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Gen 26, 2018 alle 10:41
+-- Creato il: Gen 30, 2018 alle 09:11
 -- Versione del server: 10.1.29-MariaDB
 -- Versione PHP: 7.1.12
 
@@ -21,6 +21,20 @@ SET time_zone = "+00:00";
 --
 -- Database: `db_betaconvenzioni`
 --
+
+DELIMITER $$
+--
+-- Funzioni
+--
+CREATE DEFINER=`root`@`localhost` FUNCTION `sp_CalculateDistance` (`lat1` FLOAT, `lng1` FLOAT, `lat2` FLOAT, `lng2` FLOAT) RETURNS FLOAT NO SQL
+    DETERMINISTIC
+RETURN 6371 * 2 * ASIN(SQRT(
+            POWER(SIN((lat1 - abs(lat2)) * pi()/180 / 2),
+            2) + COS(lat1 * pi()/180 ) * COS(abs(lat2) *
+            pi()/180) * POWER(SIN((lng1 - lng2) *
+            pi()/180 / 2), 2) ))$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
