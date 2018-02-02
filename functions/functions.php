@@ -35,7 +35,14 @@ function Encryption($string, $action = 'e' ) { //parametri: string (stringa da c
 
 
 
-function LoadList() { //Parametri: categoria (?), cerca (?)
+function LoadList() { //Parametri da query string: categoria (?), cerca (?), utente (!)
+	if(!(isset($_GET['utente']))){
+		return;
+	}
+
+	$utente = $_GET['utente'];
+	$utente = Encryption($utente, 'd');
+
     $link = mysqli_connect("localhost", "root", "", "db_betaconvenzioni");
 
     /* check connection */
@@ -49,8 +56,14 @@ function LoadList() { //Parametri: categoria (?), cerca (?)
 	
 	$categoria = $_GET['categoria'];
 	$cerca = $_GET['cerca'];
-	$query = "SELECT * FROM tbl_convenzioni WHERE (DataScadenza > '$today' OR DataScadenza = '0000-00-00') ";
+	//$query = "SELECT * FROM tbl_convenzioni WHERE (DataScadenza > '$today' OR DataScadenza = '0000-00-00') ";
 
+	
+	$query = "SELECT tbl_convenzioni.*, (SELECT sp_CalculateDistance(tbl_convenzioni.Lat, tbl_convenzioni.Lng, tbl_utenti.Lat, tbl_utenti.Lng) AS sp_CalculateDistance) AS Distanza 
+			FROM tbl_convenzioni, tbl_utenti 
+			WHERE IdUtente = $utente
+			ORDER BY Distanza ASC";
+	
 	if($categoria != ""){
 		$query = $query . " AND IdCategoria = '$categoria' ";
 	}	
