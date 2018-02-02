@@ -1,3 +1,10 @@
+<?php
+if(!(isset($_COOKIE['auth_betaconvenzioni']))){
+	echo "<script>window.location.href='login.php'</script>";
+}
+?>
+
+
 <html>
 <head>
 
@@ -99,8 +106,6 @@
 </head>
 <body>
 
-
-
 <h1>Convenzioni</h1>
 
 
@@ -137,7 +142,6 @@
                         }
                     }
 					
-									
 					/* close connection */
 					mysqli_close($link);
 
@@ -198,7 +202,8 @@
     <script>
 
         $(document).ready(function (){
-            var url = "functions/functions.php?function=LoadList";
+			var utente = getCookie('auth_betaconvenzioni');
+            var url = "functions/functions.php?function=LoadList&utente=" + utente;
             url += "&categoria=" + getParameterByName('ddlCategoria');
             url += "&cerca=" + getParameterByName('txtRicerca');
 			
@@ -245,6 +250,12 @@ function getParameterByName(name){
     } else{
         return decodeURIComponent(results[1].replace(/\+/g, " "));
     }
+}
+
+function getCookie(name) {
+  var value = "; " + document.cookie;
+  var parts = value.split("; " + name + "=");
+  if (parts.length == 2) return parts.pop().split(";").shift();
 }
 
 
