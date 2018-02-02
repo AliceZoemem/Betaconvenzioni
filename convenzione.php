@@ -1,11 +1,17 @@
 <?php
-	session_start();
-	$id_convenzione = $_GET['convenzione'];
-	$servername = "localhost";
-	$db_username = "root";
-	$db_pw = "";
-	$db_name = "db_betaconvenzioni";
-	$conn = new mysqli($servername, $db_username, $db_pw, $db_name);
+	$cookie_name = 'auth_betaconvenzioni';
+	if(isset($_COOKIE[$cookie_name])){
+		$id_convenzione = $_GET['convenzione'];
+		$servername = "localhost";
+		$db_username = "root";
+		$db_pw = "";
+		$db_name = "db_betaconvenzioni";
+		$conn = new mysqli($servername, $db_username, $db_pw, $db_name);
+		require_once('functions/functions.php');
+	}else{
+		header("Location: http://localhost/login.php");
+	}
+	
 ?>	
 <!DOCTYPE HTML>  
 <html lang="it">
@@ -96,31 +102,31 @@
 						</div>  
 					</form>
 					<?php
-						if(isset ($_POST['feedback'])){
-							$id_utente = $_SESSION['IdUtente'];
-							
-							$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
-							$result_control_insert = $conn->query($sql_control_insert);
-							
-							if ($result_control_insert->num_rows < 0) {
+						$id_utente = $_COOKIE['auth_betaconvenzioni'];
+						$id_utente = Encryption($id_utente, 'd');							
+						$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
+						$result_control_insert = $conn->query($sql_control_insert);
+						if ($result_control_insert->num_rows <= 0)
+							$already_rating = 0;
+						else{
+							echo "<script>
+								$(document).ready(function () {
+								$('select').barrating('clear');
+								$('select').barrating('set', ".mysqli_fetch_row($result_control_insert)[2].");
+							});
+							</script>";	
+							$already_rating = 1;
+						}
+						if(isset ($_POST['feedback'])){														
+							if ($already_rating == 0) {								
 								$option = isset ($_POST['rating']) ? $_POST['rating'] : "";
-								$voto = intval($option);								
+								$voto = intval($option);
 								$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.")";
-								
-							}else{
-								echo "Questa convenzione è già stata votata";
-								
-								foreach ($result_control_insert as $key => $item)
-								{
-									echo "<script>
-									
-									$(document).ready(function () {
-										$('select').barrating('clear');
-										$('select').barrating('set', ".$item['Voto'].");
-									});
-									</script>";
-								}
-							}		
+								// mysqli_query($mysqli, $php);
+								$conn->query($sql_insert);								
+							}else
+								echo 'Convenzione già votata';
+							
 						}
 					?>
 				</div>
