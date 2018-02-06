@@ -25,12 +25,8 @@
 
 <?php
 	require_once('functions/functions.php');
-
-	$servername = "localhost";
-	$db_username = "root";
-	$db_pw = "";
-	$db_name = "db_betaconvenzioni";
-    $conn = new mysqli($servername, $db_username, $db_pw, $db_name);
+	echo 'entra3';
+	$conn = Instauraconnessione();
 
 	if ( isset($_POST['submit'] )){
 		$nome=$_POST['nome'];
@@ -44,6 +40,7 @@
 			echo 'Indirizzo non trovato';
 			exit;
 		}else{
+			echo 'entra';
 			$array_coordinate = explode('|', $lat_log);
 			// print_r ($array_coordinate);
 			$sql_control="SELECT * FROM tbl_utenti WHERE Email = '". $email ."'";
@@ -65,13 +62,15 @@
 					$cookie_name = 'auth_betaconvenzioni';
 					
 					setcookie ($cookie_name, $cookie_value, time() + (86400 * 30), '/');
+					Abbatticonnessione($conn);
 					header("Location: homepage.php");
 				}
 			}else{
 				echo 'Email già in uso.';
+				Abbatticonnessione($conn);
 				exit;
 			}
 		}
-		
+		echo 'Compila il form in modo adeguato';
 	}
 	

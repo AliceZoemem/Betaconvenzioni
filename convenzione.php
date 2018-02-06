@@ -1,13 +1,8 @@
 <?php
+	require_once('functions/functions.php');
 	$cookie_name = 'auth_betaconvenzioni';
 	if(isset($_COOKIE[$cookie_name])){
-		$id_convenzione = $_GET['convenzione'];
-		$servername = "localhost";
-		$db_username = "root";
-		$db_pw = "";
-		$db_name = "db_betaconvenzioni";
-		$conn = new mysqli($servername, $db_username, $db_pw, $db_name);
-		require_once('functions/functions.php');
+		$id_convenzione = $_GET['convenzione'];			
 	}else{
 		header("Location: login.php");
 	}
@@ -53,8 +48,9 @@
 			<div class="row">
 				<div class="col-sm-6" id="contenuto_img">
 					<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
-						<ol class="carousel-indicators">
+						<ul class="carousel-indicators">
 							<?php
+								$conn = Instauraconnessione();
 								$sql_immagini = "SELECT * FROM tbl_immagini WHERE IdConvenzione = " . $id_convenzione;
 								$result_immagini = $conn->query($sql_immagini);
 
@@ -64,9 +60,10 @@
 										echo "<li data-target='#carouselExampleIndicators' data-slide-to='" .$key. "'></li>";	
 									else
 										echo "<li data-target='#carouselExampleIndicators' data-slide-to='" .$key. "' class='active'></li>";	
-								}								
+								}		
+								
 							?>
-						</ol>
+						</ul>
 						<div class="carousel-inner">
 							<?php
 								foreach ($result_immagini as $key => $item)
@@ -75,9 +72,9 @@
 										echo "<div class='carousel-item active' style='background-image:url(img/convenzioni/".$item['NomeFile'].")'></div>";
 									else
 										echo "<div class='carousel-item' style='background-image:url(img/convenzioni/".$item['NomeFile'].")'></div>";									
-								}								
+								}
+								Abbatticonnessione($conn);								
 							?>						
-							
 						</div>
 						<a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
 							<span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -90,10 +87,29 @@
 					</div>
 				</div>
 				<div class="col-sm-6" id="contenuto_testo">
-					<h2 id="title_convenction" >Convenzione 1</h2>
-					<div>
-						<p id="descrizione">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
-					</div>
+					<?php
+						$conn = Instauraconnessione();
+						$sql_info_testo = "SELECT * FROM tbl_convenzioni WHERE IdConvenzione = " . $id_convenzione;
+						$result_info_testo = $conn->query($sql_info_testo);
+						if ($result_info_testo->num_rows > 0){
+							//Remove tags strip_tags($string, 'tags')	Non funziona
+							$array =  mysqli_fetch_row($result_info_testo);
+							echo "<h2 id='title_convenction' >". $array[1] ."</h2>
+							<div>
+								". $array[2] ."
+							</div>
+							";
+						}else{
+							echo "<h2 id='title_convenction' >Titolo non presente</h2>
+							<div>
+								<p id='descrizione'>Descrizione non presente</p>
+							</div>
+							";
+							
+						}
+						Abbatticonnessione($conn);
+					?>
+						
 					<form action = "" method = "post">
 						<div class="stars stars-example-css">
 							<select id="example-css" name="rating" autocomplete="off">
@@ -107,6 +123,7 @@
 						</div>  
 					</form>
 					<?php
+						$conn = Instauraconnessione();
 						$id_utente = $_COOKIE['auth_betaconvenzioni'];
 						$id_utente = Encryption($id_utente, 'd');							
 						$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
@@ -136,9 +153,10 @@
 								});
 								</script>";									
 							}else
-								echo "<script>alert('La convenzione è già stata votata')</script>";
+								echo "<script>alert('La convenzione è già stata votata')</script>";;
 							
 						}
+						Abbatticonnessione($conn);
 					?>
 				</div>
 			</div>
@@ -146,6 +164,7 @@
 				<div class="col-4 col-md-auto" id="contenuto_allegati">
 					<ul id="elenco_allegati">
 						<?php
+							$conn = Instauraconnessione();
 							$sql_allegati = "SELECT * FROM tbl_allegati WHERE IdConvenzione = " . $id_convenzione;
 							$result_allegati = $conn->query($sql_allegati);
 
@@ -153,7 +172,7 @@
 							{
 								echo "<li><a href='img/allegati/". $item['NomeFile'] ."'>". $item['NomeFile'] ."</a></li>";								
 							}
-							
+							Abbatticonnessione($conn);
 						?>
 
 						
@@ -170,27 +189,6 @@
 			$($('form')[0]).attr('action', window.location.href);
 		});
 	</script>
-	
-	
-		<?php	
-			$sql = "SELECT * FROM tbl_convenzioni WHERE IdConvenzione = " . $id_convenzione;
-			$result = $conn->query($sql);
-
-			if ($result->num_rows > 0) {
-				foreach ($result as $row) {
-					$toRender = $row['Descrizione'];
-					$toRender = str_replace("'", "\'", $toRender);
-					$toRender = preg_replace( "/\r|\n/", "<br/>", $toRender);
-					
-					echo 
-					"<script>
-						document.getElementById('descrizione').innerHTML = '" . $toRender ."';
-						document.getElementById('title_convenction').innerHTML = '" . $row ['Titolo']."';
-					</script>";
-				}
-			}
-		?>
-	
 	
 	</body>
 	

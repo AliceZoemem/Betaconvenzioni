@@ -23,18 +23,13 @@
 </html>
 <?php
 	require_once('functions/functions.php');
+	$conn = Instauraconnessione();
 	
-	$servername = "localhost";
-	$db_username = "root";
-	$db_pw = "";
-	$db_name = "db_betaconvenzioni";
 	if ( isset($_POST['submit'] )){
 		$email = $_POST['email'];
 		$pw = $_POST['password'];		
 	
 		$new_pw = md5($pw);
-		
-		$conn = new mysqli($servername, $db_username, $db_pw, $db_name);
 		
 		$sql = "SELECT * FROM tbl_utenti WHERE password = '" . $new_pw ."' AND email = '" . $email ."' AND attivo = '1'" ;
 		$result = $conn->query($sql);
@@ -45,11 +40,13 @@
 			$cookie_name = 'auth_betaconvenzioni';
 			
 			setcookie ($cookie_name, $cookie_value, time() + (86400 * 30), '/');
+			Abbatticonnessione($conn);
 			header("Location: homepage.php");
 			
 			//se il cookie e settato e torno a login reindirizza su homepage
 		}else{
 			echo "Email o Password errate";
+			Abbatticonnessione($conn);
 		}
 	}
 ?>	

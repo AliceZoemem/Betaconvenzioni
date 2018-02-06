@@ -1,7 +1,8 @@
 <?php
-if(!(isset($_COOKIE['auth_betaconvenzioni']))){
-	echo "<script>window.location.href='login.php'</script>";
-}
+	require_once('functions/functions.php');
+	if(!(isset($_COOKIE['auth_betaconvenzioni']))){
+		echo "<script>window.location.href='login.php'</script>";
+	}
 ?>
 
 
@@ -126,8 +127,8 @@ if(!(isset($_COOKIE['auth_betaconvenzioni']))){
                 <option value=''>Categoria...</option>
 
                 <?php
-                    $link = mysqli_connect("localhost", "root", "", "db_betaconvenzioni");
-
+                    $conn = Instauraconnessione();
+					
                     /* check connection */
                     if (mysqli_connect_errno()) {
                         printf("Connect failed: %s\n", mysqli_connect_error());
@@ -136,7 +137,7 @@ if(!(isset($_COOKIE['auth_betaconvenzioni']))){
 
                     $query = "SELECT * FROM tbl_categorie ORDER BY Nome ASC";
 
-                    if ($result = mysqli_query($link, $query)) {
+                    if ($result = mysqli_query($conn, $query)) {
                     
                         /* fetch associative array */
                         while ($row = mysqli_fetch_array($result)) {
@@ -148,7 +149,7 @@ if(!(isset($_COOKIE['auth_betaconvenzioni']))){
                     }
 					
 					/* close connection */
-					mysqli_close($link);
+					Abbatticonnessione($conn);
 
                 ?>
             </select>
@@ -175,7 +176,7 @@ if(!(isset($_COOKIE['auth_betaconvenzioni']))){
 	
 	
 	<?php
-		$link = mysqli_connect("localhost", "root", "", "db_betaconvenzioni");
+		$conn =Instauraconnessione($conn);
 
 		/* check connection */
 		if (mysqli_connect_errno()) {
@@ -185,7 +186,7 @@ if(!(isset($_COOKIE['auth_betaconvenzioni']))){
 
 		$query = "SELECT sp_CalculateDistance (45.074902, 7.589834, 45.075410, 7.594630) AS sp_CalculateDistance";
 		
-		if ($result = mysqli_query($link, $query)) {
+		if ($result = mysqli_query($conn, $query)) {
                     
 			/* fetch associative array */
 			while ($row = mysqli_fetch_array($result)) {
@@ -195,8 +196,8 @@ if(!(isset($_COOKIE['auth_betaconvenzioni']))){
 		}
 		
 		/* close connection */
-		mysqli_close($link);
-	
+		
+		Abbatticonnessione($conn);
 	?>
 	
 </div>
