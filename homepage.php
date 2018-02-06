@@ -100,14 +100,19 @@ if(!(isset($_COOKIE['auth_betaconvenzioni']))){
     .conv-description{
         padding-top:20px;
     }
+	
+	.right{
+		float:right;
+		margin: 1% 7%;
+	}
 
 </style>
 
 </head>
 <body>
 
-<h1>Convenzioni</h1>
-
+<h1 style="display:inline">Convenzioni</h1>
+<button type="button" class="right" onclick="window.location.href='/logout.php'">Logout</button>
 
 <div class='filters-bar'>
 

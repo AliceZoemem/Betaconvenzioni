@@ -17,7 +17,8 @@
 			<br><br>
 			<input type="submit" name="submit" value="Login">
 		</form>
-		
+		<br>
+		<a href="/registrazione.php" >Registrati</a>
 	</body>
 </html>
 <?php
