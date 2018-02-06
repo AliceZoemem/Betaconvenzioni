@@ -136,7 +136,7 @@
 								});
 								</script>";									
 							}else
-								echo 'Convenzione già votata';
+								echo '<script>La convenzione è già stata votata</script>';
 							
 						}
 					?>
