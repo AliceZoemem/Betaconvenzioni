@@ -13,6 +13,19 @@ if(isset($_GET['function'])) {
     $function();
 }
 
+function Instauraconnessione(){
+	$servername = "localhost";
+	$db_username = "root";
+	$db_pw = "";
+	$db_name = "db_betaconvenzioni";
+	$conn = new mysqli($servername, $db_username, $db_pw, $db_name);
+	return $conn;
+}	
+
+function Abbatticonnessione($conn){
+	mysqli_close($conn);
+}
+
 function Encryption($string, $action = 'e' ) { //parametri: string (stringa da criptare/decriptare), action (se action = 'e' --> encrypt (cripta), se action = 'd' --> decryption (decripta))
     // you may change these values to your own
     $secret_key = 'my_simple_secret_key';
@@ -43,7 +56,7 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
 	$utente = $_GET['utente'];
 	$utente = Encryption($utente, 'd');
 
-    $link = mysqli_connect("localhost", "root", "", "db_betaconvenzioni");
+    $conn = Instauraconnessione();
 
     /* check connection */
     if (mysqli_connect_errno()) {
@@ -72,7 +85,7 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
 		$query = $query . " AND (Descrizione LIKE '%$cerca%' OR Titolo LIKE '%$cerca%' ) ";
 	}	
 	
-    if ($result = mysqli_query($link, $query)) {
+    if ($result = mysqli_query($conn, $query)) {
     
         /* fetch associative array */
         while ($row = mysqli_fetch_array($result)) {
@@ -87,7 +100,7 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
             
             /* Percorso immagine */
 
-            $q = mysqli_query($link, "SELECT NomeFile FROM tbl_immagini WHERE IdConvenzione = $idConvenzione ORDER BY Ordine ASC LIMIT 1");
+            $q = mysqli_query($conn, "SELECT NomeFile FROM tbl_immagini WHERE IdConvenzione = $idConvenzione ORDER BY Ordine ASC LIMIT 1");
             $row = mysqli_fetch_assoc($q);
             $FileIMG = $row["NomeFile"];
 
@@ -108,7 +121,7 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
             
             /* Nome Categoria */
 
-            $q = mysqli_query($link, "SELECT Nome FROM tbl_categorie WHERE IdCategoria = $idConvenzione LIMIT 1");
+            $q = mysqli_query($conn, "SELECT Nome FROM tbl_categorie WHERE IdCategoria = $idConvenzione LIMIT 1");
             $row = mysqli_fetch_assoc($q);
             $NomeCategoria = $row["Nome"];
 
@@ -150,7 +163,7 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
     echo $res;
     
     /* close connection */
-    mysqli_close($link);
+	Abbatticonnessione($conn);
 }
 
 
@@ -172,7 +185,7 @@ function GetCoordinates($address) { //parametri: indirizzo
 		$lati = $resp['results'][0]['geometry']['location']['lat'];
 		$longi = $resp['results'][0]['geometry']['location']['lng'];
 		// $formatted_address = $resp['results'][0]['formatted_address'];
-		echo $lati ."|". $longi ;	
+		return $lati ."|". $longi ;	
 	}
 	else {
 		return false;
