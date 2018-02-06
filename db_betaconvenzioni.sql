@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Feb 02, 2018 alle 12:42
--- Versione del server: 10.1.29-MariaDB
--- Versione PHP: 7.1.12
+-- Creato il: Feb 06, 2018 alle 09:08
+-- Versione del server: 10.1.30-MariaDB
+-- Versione PHP: 5.6.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -160,7 +160,7 @@ CREATE TABLE `tbl_utenti` (
   `Password` varchar(250) NOT NULL,
   `Lat` float NOT NULL,
   `Lng` float NOT NULL,
-  `IsAmminstratore` tinyint(1) NOT NULL,
+  `IsAmministratore` tinyint(1) NOT NULL,
   `Attivo` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -168,9 +168,10 @@ CREATE TABLE `tbl_utenti` (
 -- Dump dei dati per la tabella `tbl_utenti`
 --
 
-INSERT INTO `tbl_utenti` (`IdUtente`, `Cognome`, `Nome`, `Email`, `Password`, `Lat`, `Lng`, `IsAmminstratore`, `Attivo`) VALUES
+INSERT INTO `tbl_utenti` (`IdUtente`, `Cognome`, `Nome`, `Email`, `Password`, `Lat`, `Lng`, `IsAmministratore`, `Attivo`) VALUES
 (1, 'aa', 'aa', 'aa@gmail.com', '0cc175b9c0f1b6a831c399e269772661', 1.3, 1.3, 0, 1),
-(2, 'bb', 'bb', 'bb@gmail.com', '92eb5ffee6ae2fec3ad71c777531578f', 2.2, 2.2, 0, 1);
+(2, 'bb', 'bb', 'bb@gmail.com', '92eb5ffee6ae2fec3ad71c777531578f', 2.2, 2.2, 0, 1),
+(7, 'sdfff', 'sd', 'asff@gmail.com', '4b129f0db87cbbe2245e294a7ea6a233', 45.0674, 7.62637, 0, 1);
 
 --
 -- Indici per le tabelle scaricate
@@ -250,7 +251,7 @@ ALTER TABLE `tbl_immagini`
 -- AUTO_INCREMENT per la tabella `tbl_utenti`
 --
 ALTER TABLE `tbl_utenti`
-  MODIFY `IdUtente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `IdUtente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
