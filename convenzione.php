@@ -9,7 +9,7 @@
 		$conn = new mysqli($servername, $db_username, $db_pw, $db_name);
 		require_once('functions/functions.php');
 	}else{
-		header("Location: http://localhost/login.php");
+		header("Location: login.php");
 	}
 	
 ?>	
@@ -37,6 +37,10 @@
 				background-repeat:no-repeat;
 				background-size:cover;
 			}
+			.right{
+				float:right;
+				margin: 1% 7%;
+			}
 		</style>
 		
 		
@@ -44,6 +48,7 @@
 		
 	</head>
 	<body>
+		<button type="button" class="right" onclick="window.location.href='/logout.php'">Logout</button>
 		<div class="container-fluid">
 			<div class="row">
 				<div class="col-sm-6" id="contenuto_img">
@@ -123,7 +128,13 @@
 								$voto = intval($option);
 								$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.")";
 								// mysqli_query($mysqli, $php);
-								$conn->query($sql_insert);								
+								$conn->query($sql_insert);
+								echo "<script>
+									$(document).ready(function () {
+									$('select').barrating('clear');
+									$('select').barrating('set', ".$voto.");
+								});
+								</script>";									
 							}else
 								echo 'Convenzione già votata';
 							
