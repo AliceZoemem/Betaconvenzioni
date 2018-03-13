@@ -5,11 +5,11 @@
 	}
 ?>
 
-
 <html>
 <head>
 
 <script src="js/jquery-3.3.1.min.js"></script> 
+<script src="https://maps.googleapis.com/maps/api/js?libraries=places&language=it&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38"></script>
 
 <style>
 
@@ -55,7 +55,6 @@
         min-height:30%;
         height:auto;
         margin-bottom:20px;
-        /* border-bottom:1px solid #444; */
         padding:50px;
         transition:0.2s;
     }
@@ -84,7 +83,6 @@
 
     .conv-content{
         width:60%;
-        /* background-color:#0f0; */
         display:inline-block;
         padding:0;
         vertical-align:top;
@@ -113,21 +111,20 @@
 <body>
 
 <h1 style="display:inline">Convenzioni</h1>
-<button type="button" class="right" onclick="window.location.href='/logout.php'">Logout</button>
+<button type="button" class="right" onclick="window.location.href='logout.php'">Logout</button>
 
 <div class='filters-bar'>
 
-    <form method='get' action='homepage.php'>
-
+    <form method='get' id="MainForm" action='homepage.php'>
         <div class='filters-controls'>
 
-            <input type='text' id='txtCitta' name='txtCitta' placeholder='Località...' />
+            <input type='text' id='txtLocalita' name='localita' placeholder='Località...' />
 
-            <select id='ddlCategoria' name='ddlCategoria' >
+            <select id='ddlCategoria' name='categoria' >
                 <option value=''>Categoria...</option>
 
                 <?php
-                    $conn = Instauraconnessione();
+                    $conn = InstauraConnessione();
 					
                     /* check connection */
                     if (mysqli_connect_errno()) {
@@ -149,34 +146,23 @@
                     }
 					
 					/* close connection */
-					Abbatticonnessione($conn);
-
+					AbbattiConnessione($conn);
                 ?>
             </select>
 
-            <input type='text' id='txtRicerca' name='txtRicerca' placeholder='Cerca...' />
+            <input type='text' id='txtRicerca' name='cerca' placeholder='Cerca...' />
 
         </div>
 
         <div class='filter-buttons'>
-            <input type='submit' id='btnCerca' name='btnCerca' value='Cerca' />
-            <input type='submit' id='btnRimuoviFiltri' name='btnRimuoviFiltri' value='Rimuovi filtri' />
+            <input type='submit' id='btnCerca' value='Cerca' onclick="Cerca();" />
+            <input type='submit' id='btnRimuoviFiltri' value='Rimuovi filtri' onclick="RimuoviFiltri();" />
         </div>
-		
-		
-		
-		
-		
-		
-		
-		
     </form>
 	
 	
-	
-	
 	<?php
-		$conn =Instauraconnessione($conn);
+		$conn = InstauraConnessione($conn);
 
 		/* check connection */
 		if (mysqli_connect_errno()) {
@@ -190,53 +176,88 @@
                     
 			/* fetch associative array */
 			while ($row = mysqli_fetch_array($result)) {
-				echo "La distanza tra i due punti è " . $row[0] . " km";
-
+				// echo "La distanza tra i due punti è " . $row[0] . " km";
 			}
 		}
 		
 		/* close connection */
-		
-		Abbatticonnessione($conn);
+		AbbattiConnessione($conn);
 	?>
 	
 </div>
 
 
 <div id='conv-list' class='conv-list'>
-
-    <script>
-
-        $(document).ready(function (){
-			var utente = getCookie('auth_betaconvenzioni');
-            var url = "functions/functions.php?function=LoadList&utente=" + utente;
-            url += "&categoria=" + getParameterByName('ddlCategoria');
-            url += "&cerca=" + getParameterByName('txtRicerca');
-			
-			
-            $("#conv-list").load(url, function() {
-                AdjustStyle();
-                $('.conv-wrapper').click(function() {
-                    var targetCoupon = $(this).data('conv-target');
-                    window.location = "convenzione.php?convenzione=" + targetCoupon;
-                });
-            });
-        });
-
-    </script>
-
+    <!-- Elenco delle convenzioni -->
 </div>
 
 
 <script>
 
 $(document).ready(function (){
-    AdjustStyle();
-    $('.conv-wrapper').click(function() {
-        var targetCoupon = $(this).data('conv-target');
-        window.location = "convenzione.php?convenzione=" + targetCoupon;
+    var input = document.getElementById('txtLocalita');
+    var autocomplete = new google.maps.places.Autocomplete(input);
+
+    var utente = getCookie('auth_betaconvenzioni');
+    var url = "functions/functions.php?function=LoadList&utente=" + utente;
+    
+    $("#conv-list").load(url, function() {
+        AdjustStyle();
+        $('.conv-wrapper').click(function() {
+            var targetCoupon = $(this).data('conv-target');
+            window.location = "convenzione.php?convenzione=" + targetCoupon;
+        });
     });
 });
+
+$("#MainForm").submit(function(e){
+    e.preventDefault();
+});
+
+
+function Cerca(){
+    var utente = getCookie('auth_betaconvenzioni');
+    var url = "functions/functions.php?function=LoadList&utente=" + utente;
+
+    if($('#txtRicerca').val()){
+        url += "&cerca=" + $('#txtRicerca').val();
+    }
+
+    if($('#ddlCategoria').val()){
+        url += "&categoria=" + $('#ddlCategoria').val();
+    }
+
+    if($('#txtLocalita').val()){
+        var localita = encodeURI($('#txtLocalita').val());
+        url += "&localita=" + localita;
+    }
+    
+    $("#conv-list").load(url, function(response) {
+        AdjustStyle();
+        $('.conv-wrapper').click(function() {
+            var targetCoupon = $(this).data('conv-target');
+            window.location = "convenzione.php?convenzione=" + targetCoupon;
+        });
+    });
+}
+
+function RimuoviFiltri(){
+    var utente = getCookie('auth_betaconvenzioni');
+    var url = "functions/functions.php?function=LoadList&utente=" + utente;
+    
+    $("#conv-list").load(url, function() {
+        AdjustStyle();
+
+        $('#ddlCategoria').val('');
+        $('#txtRicerca').val('');
+        $('#txtLocalita').val('');
+
+        $('.conv-wrapper').click(function() {
+            var targetCoupon = $(this).data('conv-target');
+            window.location = "convenzione.php?convenzione=" + targetCoupon;
+        });
+    });
+}
 
 
 function AdjustStyle(){
@@ -246,14 +267,14 @@ function AdjustStyle(){
 }
 
 
-
 function getParameterByName(name){
     var regexS = "[\\?&]"+name+"=([^&#]*)", 
     regex = new RegExp( regexS ),
     results = regex.exec( window.location.search );
-    if( results == null ){
+    if( results == null ) {
         return "";
-    } else{
+    } 
+    else {
         return decodeURIComponent(results[1].replace(/\+/g, " "));
     }
 }
