@@ -1,6 +1,6 @@
 <html>
 <head>
-	<script src="http://maps.google.com/maps/api/js?sensor=false&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38"></script>
+	<!-- <script src="http://maps.google.com/maps/api/js?sensor=false&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38"></script> -->
 </head>
 <body>
 </body>
@@ -13,7 +13,7 @@ if(isset($_GET['function'])) {
     $function();
 }
 
-function Instauraconnessione(){
+function InstauraConnessione(){
 	$servername = "localhost";
 	$db_username = "root";
 	$db_pw = "";
@@ -22,7 +22,7 @@ function Instauraconnessione(){
 	return $conn;
 }	
 
-function Abbatticonnessione($conn){
+function AbbattiConnessione($conn){
 	mysqli_close($conn);
 }
 
@@ -55,8 +55,7 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
 
 	$utente = $_GET['utente'];
 	$utente = Encryption($utente, 'd');
-
-    $conn = Instauraconnessione();
+    $conn = InstauraConnessione();
 
     /* check connection */
     if (mysqli_connect_errno()) {
@@ -66,25 +65,49 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
 
     $res = "";
     $today = date('Y-m-d');
-	
-	$categoria = $_GET['categoria'];
-	$cerca = $_GET['cerca'];
-	//$query = "SELECT * FROM tbl_convenzioni WHERE (DataScadenza > '$today' OR DataScadenza = '0000-00-00') ";
 
-	
+    $categoria = "";
+    $cerca = "";
+    $localita = "";
+
+    if(isset($_GET['categoria']))
+	    $categoria = $_GET['categoria'];
+    
+    if(isset($_GET['cerca']))
+        $cerca = $_GET['cerca'];
+
+    if(isset($_GET['localita']))
+        $localita = $_GET['localita'];
+
 	$query = "SELECT tbl_convenzioni.*, (SELECT sp_CalculateDistance(tbl_convenzioni.Lat, tbl_convenzioni.Lng, tbl_utenti.Lat, tbl_utenti.Lng) AS sp_CalculateDistance) AS Distanza 
 			FROM tbl_convenzioni, tbl_utenti 
-			WHERE IdUtente = $utente
-			ORDER BY Distanza ASC";
-	
+			WHERE IdUtente = $utente 
+            AND (tbl_convenzioni.DataScadenza >=  '$today' OR tbl_convenzioni.DataScadenza = '0000-00-00') ";
+			
 	if($categoria != ""){
 		$query = $query . " AND IdCategoria = '$categoria' ";
 	}	
 	
 	if($cerca != ""){
 		$query = $query . " AND (Descrizione LIKE '%$cerca%' OR Titolo LIKE '%$cerca%' ) ";
-	}	
-	
+    }	
+    
+    if($localita != ""){
+        $coordinates = GetCoordinates($localita);
+
+        $lat = explode("|", $coordinates)[0];
+        $lng = explode("|", $coordinates)[1];
+        
+		$query = str_replace("tbl_utenti.Lat", $lat, $query);
+		$query = str_replace("tbl_utenti.Lng", $lng, $query);
+    }	
+    
+    if($localita != ""){
+        $query = $query . " HAVING Distanza < 5";
+    }
+
+    $query = $query . " ORDER BY Distanza ASC";
+
     if ($result = mysqli_query($conn, $query)) {
     
         /* fetch associative array */
@@ -97,6 +120,11 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
 			$lng = $row['Lng'];
             $scadenza = $row['DataScadenza'];
             $idCategoria = $row['IdCategoria'];
+            $distanza = $row['Distanza'];
+            $distanza = round($distanza, 2);
+            $displayLoc = "te";
+            if($localita != "")
+                $displayLoc = $localita;
             
             /* Percorso immagine */
 
@@ -105,7 +133,6 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
             $FileIMG = $row["NomeFile"];
 
             $url = "";
-
 
             $isExternal = false;
             if(strpos($FileIMG, "http") != false)
@@ -128,16 +155,12 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
             /* END Nome Categoria*/
 
 
-
             /* Gestione scadenza */
-
             if($scadenza == 0000-00-00)
                 $scadenza = "Nessuna scadenza";
             else 
                 $scadenza = date("d/m/Y", strtotime($scadenza));
-
             /* END Gestione scadenza */
-
 
             $res = $res . " 
                 <div class='conv-wrapper' data-conv-target='$idConvenzione'>
@@ -145,6 +168,7 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
                     </div>
                     <div class='conv-content'>
                         <h2 class='conv-ti+tle'>$titolo</h2>
+                        <i>A <b>$distanza km</b> da $displayLoc</i><br><br>
                         <b class='conv-category'>$NomeCategoria</b><br/>
                         <i class='conv-expiration'>Scadenza: $scadenza</i>
                         <div class='conv-description'>
@@ -163,15 +187,15 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
     echo $res;
     
     /* close connection */
-	Abbatticonnessione($conn);
+	AbbattiConnessione($conn);
 }
 
 
 function GetCoordinates($address) { //parametri: indirizzo
-	$address = urlencode($address);
-	 
+    header('Content-Type: text/plain');
+    $address = urlencode($address);
 	// google map geocode api url
-	$url = "http://maps.google.com/maps/api/geocode/json?address={$address}";
+	$url = "https://maps.google.com/maps/api/geocode/json?sensor=false&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38&address=$address";
  
 	// get the json response
 	$resp_json = file_get_contents($url);
@@ -179,12 +203,12 @@ function GetCoordinates($address) { //parametri: indirizzo
 	// decode the json
 	$resp = json_decode($resp_json, true);
  
-	// response status will be 'OK', if able to geocode given address 
-	if($resp['status']=='OK'){	 
+    // response status will be 'OK', if able to geocode given address 
+    if($resp['status']=='OK'){	 
 		// get the important data
 		$lati = $resp['results'][0]['geometry']['location']['lat'];
-		$longi = $resp['results'][0]['geometry']['location']['lng'];
-		// $formatted_address = $resp['results'][0]['formatted_address'];
+        $longi = $resp['results'][0]['geometry']['location']['lng'];
+        
 		return $lati ."|". $longi ;	
 	}
 	else {
