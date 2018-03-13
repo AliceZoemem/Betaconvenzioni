@@ -36,6 +36,15 @@
 				float:right;
 				margin: 1% 7%;
 			}
+		
+			.pencil{
+				visiblity: visible;
+				display: inline;
+				width: 3rem;
+				position: absolute;
+				right: 20%;
+				top: 5%;
+			}
 		</style>
 		
 		
@@ -44,16 +53,29 @@
 	</head>
 	<body>
 		<button type="button" class="right" onclick="window.location.href='/logout.php'">Logout</button>
+		<?php 
+			$conn = InstauraConnessione();
+			$id_utente = $_COOKIE['auth_betaconvenzioni'];
+			$id_utente = Encryption($id_utente, 'd');
+			$sql_isAdmin = "SELECT * FROM tbl_utenti WHERE IdUtente = " . $id_utente;
+			$result_isAdmin = $conn->query($sql_isAdmin);
+			$so =  mysqli_fetch_row($result_isAdmin);
+			if($so[7] != 0)
+				echo("<img class='pencil' src='/img/pencil.png' onclick=window.location.href='/new.php?convenzione=" .$id_convenzione ."' alt='modifica'>");
+			AbbattiConnessione($conn);		
+		?>
+		  
+		
 		<div class="container-fluid">
 			<div class="row">
 				<div class="col-sm-6" id="contenuto_img">
 					<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
 						<ul class="carousel-indicators">
 							<?php
-								$conn = Instauraconnessione();
+								$conn = InstauraConnessione();
 								$sql_immagini = "SELECT * FROM tbl_immagini WHERE IdConvenzione = " . $id_convenzione;
 								$result_immagini = $conn->query($sql_immagini);
-
+	
 								foreach ($result_immagini as $key => $item)
 								{
 									if($key != 0)
@@ -73,7 +95,7 @@
 									else
 										echo "<div class='carousel-item' style='background-image:url(img/convenzioni/".$item['NomeFile'].")'></div>";									
 								}
-								Abbatticonnessione($conn);								
+								AbbattiConnessione($conn);								
 							?>						
 						</div>
 						<a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
@@ -88,7 +110,7 @@
 				</div>
 				<div class="col-sm-6" id="contenuto_testo">
 					<?php
-						$conn = Instauraconnessione();
+						$conn = InstauraConnessione();
 						$sql_info_testo = "SELECT * FROM tbl_convenzioni WHERE IdConvenzione = " . $id_convenzione;
 						$result_info_testo = $conn->query($sql_info_testo);
 						if ($result_info_testo->num_rows > 0){
@@ -107,7 +129,7 @@
 							";
 							
 						}
-						Abbatticonnessione($conn);
+						AbbattiConnessione($conn);
 					?>
 						
 					<form action = "" method = "post">
@@ -123,7 +145,7 @@
 						</div>  
 					</form>
 					<?php
-						$conn = Instauraconnessione();
+						$conn = InstauraConnessione();
 						$id_utente = $_COOKIE['auth_betaconvenzioni'];
 						$id_utente = Encryption($id_utente, 'd');							
 						$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
@@ -156,7 +178,7 @@
 								echo "<script>alert('La convenzione è già stata votata')</script>";;
 							
 						}
-						Abbatticonnessione($conn);
+						AbbattiConnessione($conn);
 					?>
 				</div>
 			</div>
@@ -164,7 +186,7 @@
 				<div class="col-4 col-md-auto" id="contenuto_allegati">
 					<ul id="elenco_allegati">
 						<?php
-							$conn = Instauraconnessione();
+							$conn = InstauraConnessione();
 							$sql_allegati = "SELECT * FROM tbl_allegati WHERE IdConvenzione = " . $id_convenzione;
 							$result_allegati = $conn->query($sql_allegati);
 
@@ -172,7 +194,7 @@
 							{
 								echo "<li><a href='img/allegati/". $item['NomeFile'] ."'>". $item['NomeFile'] ."</a></li>";								
 							}
-							Abbatticonnessione($conn);
+							AbbattiConnessione($conn);
 						?>
 
 						

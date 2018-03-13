@@ -26,7 +26,7 @@
 <?php
 	require_once('functions/functions.php');
 	echo 'entra3';
-	$conn = Instauraconnessione();
+	$conn = InstauraConnessione();
 
 	if ( isset($_POST['submit'] )){
 		$nome=$_POST['nome'];
@@ -67,7 +67,7 @@
 				}
 			}else{
 				echo 'Email già in uso.';
-				Abbatticonnessione($conn);
+				AbbattiConnessione($conn);
 				exit;
 			}
 		}

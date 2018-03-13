@@ -23,7 +23,7 @@
 </html>
 <?php
 	require_once('functions/functions.php');
-	$conn = Instauraconnessione();
+	$conn = InstauraConnessione();
 	
 	if ( isset($_POST['submit'] )){
 		$email = $_POST['email'];
@@ -40,13 +40,13 @@
 			$cookie_name = 'auth_betaconvenzioni';
 			
 			setcookie ($cookie_name, $cookie_value, time() + (86400 * 30), '/');
-			Abbatticonnessione($conn);
+			AbbattiConnessione($conn);
 			header("Location: homepage.php");
 			
 			//se il cookie e settato e torno a login reindirizza su homepage
 		}else{
 			echo "Email o Password errate";
-			Abbatticonnessione($conn);
+			AbbattiConnessione($conn);
 		}
 	}
 ?>	
