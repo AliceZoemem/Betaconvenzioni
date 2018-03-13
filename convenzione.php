@@ -2,7 +2,10 @@
 	require_once('functions/functions.php');
 	$cookie_name = 'auth_betaconvenzioni';
 	if(isset($_COOKIE[$cookie_name])){
-		$id_convenzione = $_GET['convenzione'];			
+		if($_GET['convenzione'])
+			$id_convenzione = $_GET['convenzione'];
+		else
+			header("Location: homepage.php");
 	}else{
 		header("Location: login.php");
 	}
@@ -21,7 +24,8 @@
 		<script src="js/jquery.barrating.js"></script>
 		<script src="js/examples.js"></script>	
 		<link rel="stylesheet" type="text/css" href="css/stile.css">		
-		
+		<script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
+		<script>tinymce.init({ selector:'textarea', height: '50vh' });</script>
 		
 		<style> 
 			.carousel-item{
@@ -45,10 +49,11 @@
 				right: 20%;
 				top: 5%;
 			}
+			
+			.mce-widget.mce-notification.mce-notification-warning.mce-has-close.mce-in{
+				display:none;
+			}
 		</style>
-		
-		
-		
 		
 	</head>
 	<body>
@@ -59,12 +64,43 @@
 			$id_utente = Encryption($id_utente, 'd');
 			$sql_isAdmin = "SELECT * FROM tbl_utenti WHERE IdUtente = " . $id_utente;
 			$result_isAdmin = $conn->query($sql_isAdmin);
-			$so =  mysqli_fetch_row($result_isAdmin);
-			if($so[7] != 0)
-				echo("<img class='pencil' src='/img/pencil.png' onclick=window.location.href='/new.php?convenzione=" .$id_convenzione ."' alt='modifica'>");
-			AbbattiConnessione($conn);		
+			$typeadmin =  mysqli_fetch_row($result_isAdmin);
+			if($typeadmin[7] != 0)
+				echo("<img class='pencil' src='/img/pencil.png' data-toggle='modal' data-target='#exampleModal'></img>");
+			AbbattiConnessione($conn);	
+			$conn = InstauraConnessione();
+			$sql_text = "SELECT * FROM tbl_convenzioni WHERE Idconvenzione = " . $id_convenzione;
+			$result_text = $conn->query($sql_text);
+			$text=  mysqli_fetch_row($result_text);			
 		?>
-		  
+		
+		<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<form class="modal-content" action = "" method = "post">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel"><?php echo $text[1];?></h5>
+					</div>
+					<div class="modal-body">
+						<textarea name="txtarea" id="text_fill">
+							<?php echo $text[2];?>	
+						</textarea>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						<input type="submit" name="change" value="Cambia" class="btn btn-primary"/>
+					</div>
+				</form>
+			</div>
+		</div>
+		<?php
+			if(isset ($_POST['change'])){
+				$var = $_POST['txtarea'];		
+				$conn = InstauraConnessione();
+				$sql_insert = "UPDATE tbl_convenzioni SET Descrizione = '". $var ."' WHERE IdConvenzione = " .$id_convenzione;
+				$conn->query($sql_insert);
+				AbbattiConnessione($conn);
+			}
+		?>
 		
 		<div class="container-fluid">
 			<div class="row">
