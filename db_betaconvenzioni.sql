@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Feb 06, 2018 alle 09:08
+-- Creato il: Mar 13, 2018 alle 11:56
 -- Versione del server: 10.1.30-MariaDB
 -- Versione PHP: 5.6.33
 
@@ -86,6 +86,7 @@ CREATE TABLE `tbl_convenzioni` (
   `IdConvenzione` int(11) NOT NULL,
   `Titolo` varchar(250) NOT NULL,
   `Descrizione` longtext NOT NULL,
+  `Luogo` varchar(250) NOT NULL,
   `Lat` float NOT NULL,
   `Lng` float NOT NULL,
   `DataCreazione` date NOT NULL,
@@ -97,9 +98,9 @@ CREATE TABLE `tbl_convenzioni` (
 -- Dump dei dati per la tabella `tbl_convenzioni`
 --
 
-INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Lat`, `Lng`, `DataCreazione`, `DataScadenza`, `IdCategoria`) VALUES
-(1, 'Convenzione 1', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 1, 1, '2018-01-26', '0000-00-00', 1),
-(2, 'Convenzione 2', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 2, 2, '2018-01-08', '2018-03-05', 2);
+INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Luogo`, `Lat`, `Lng`, `DataCreazione`, `DataScadenza`, `IdCategoria`) VALUES
+(1, 'Convenzione 1', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 'Torino', 1, 1, '2018-01-26', '0000-00-00', 1),
+(2, 'Convenzione 2', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 'Via Roma 10, Torino', 45.0705, 7.68455, '2018-01-08', '2018-03-22', 2);
 
 -- --------------------------------------------------------
 
@@ -112,6 +113,13 @@ CREATE TABLE `tbl_feedback` (
   `IdConvenzione` int(11) NOT NULL,
   `Voto` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dump dei dati per la tabella `tbl_feedback`
+--
+
+INSERT INTO `tbl_feedback` (`IdUtente`, `IdConvenzione`, `Voto`) VALUES
+(1, 2, 5);
 
 -- --------------------------------------------------------
 
@@ -143,8 +151,17 @@ INSERT INTO `tbl_immagini` (`IdImmagine`, `NomeFile`, `Ordine`, `IdConvenzione`)
 CREATE TABLE `tbl_log` (
   `IdUtente` int(11) NOT NULL,
   `IdConvenzione` int(11) NOT NULL,
-  `Contatore` int(11) NOT NULL
+  `Contatore` int(11) NOT NULL,
+  `UltimaVisualizzazione` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dump dei dati per la tabella `tbl_log`
+--
+
+INSERT INTO `tbl_log` (`IdUtente`, `IdConvenzione`, `Contatore`, `UltimaVisualizzazione`) VALUES
+(1, 1, 3, '2018-03-13 10:14:09'),
+(2, 2, 4, '2018-03-12 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -169,7 +186,7 @@ CREATE TABLE `tbl_utenti` (
 --
 
 INSERT INTO `tbl_utenti` (`IdUtente`, `Cognome`, `Nome`, `Email`, `Password`, `Lat`, `Lng`, `IsAmministratore`, `Attivo`) VALUES
-(1, 'aa', 'aa', 'aa@gmail.com', '0cc175b9c0f1b6a831c399e269772661', 1.3, 1.3, 0, 1),
+(1, 'aa', 'aa', 'aa@gmail.com', '0cc175b9c0f1b6a831c399e269772661', 45.0349, 7.66687, 0, 1),
 (2, 'bb', 'bb', 'bb@gmail.com', '92eb5ffee6ae2fec3ad71c777531578f', 2.2, 2.2, 0, 1),
 (7, 'sdfff', 'sd', 'asff@gmail.com', '4b129f0db87cbbe2245e294a7ea6a233', 45.0674, 7.62637, 0, 1);
 
