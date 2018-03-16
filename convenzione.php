@@ -2,6 +2,10 @@
 	require_once('functions/functions.php');
 	$cookie_name = 'auth_betaconvenzioni';
 	if(isset($_COOKIE[$cookie_name])){
+		if(isset($_GET['cancel']))
+		{
+			echo "safasf";
+		}
 		if($_GET['convenzione'])
 			$id_convenzione = $_GET['convenzione'];
 		else
@@ -10,7 +14,7 @@
 		header("Location: login.php");
 	}
 	
-?>	
+?>
 <!DOCTYPE HTML>  
 <html lang="it">
 	<head>
@@ -49,7 +53,14 @@
 				right: 20%;
 				top: 5%;
 			}
-			
+			.cancel{
+				visiblity: visible;
+				display: inline;
+				width: 4rem;
+				position: absolute;
+				right: 15%;
+				top: 4%;
+			}
 			.mce-widget.mce-notification.mce-notification-warning.mce-has-close.mce-in{
 				display:none;
 			}
@@ -65,8 +76,12 @@
 			$sql_isAdmin = "SELECT * FROM tbl_utenti WHERE IdUtente = " . $id_utente;
 			$result_isAdmin = $conn->query($sql_isAdmin);
 			$typeadmin =  mysqli_fetch_row($result_isAdmin);
-			if($typeadmin[7] != 0)
+			if($typeadmin[7] != 0){
 				echo("<img class='pencil' src='/img/pencil.png' data-toggle='modal' data-target='#exampleModal'></img>");
+				// $actual_link = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+				// $actual_link = "javascript:window.location.href='".$actual_link."?cancel=true'";
+				echo("<img class='cancel' src='/img/X.png' onclick='cancel()' ></img>");
+			}
 			AbbattiConnessione($conn);	
 			$conn = InstauraConnessione();
 			$sql_text = "SELECT * FROM tbl_convenzioni WHERE Idconvenzione = " . $id_convenzione;
@@ -168,7 +183,8 @@
 						AbbattiConnessione($conn);
 					?>
 						
-					<form action = "" method = "post">
+					<form action = "" method = "post">						
+						<input type="text" name="commento" value="" placeholder="Lascia un commento">	
 						<div class="stars stars-example-css">
 							<select id="example-css" name="rating" autocomplete="off">
 								<option value="1">1</option>
@@ -201,8 +217,12 @@
 							if ($already_rating == 0) {								
 								$option = isset ($_POST['rating']) ? $_POST['rating'] : "";
 								$voto = intval($option);
-								$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.")";
-								// mysqli_query($mysqli, $php);
+								$commento = $_POST['commento'];
+								if($commento != "")
+									$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto, Commento)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.",'".$commento."')";
+								else
+									$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.",'')";
+								
 								$conn->query($sql_insert);
 								echo "<script>
 									$(document).ready(function () {
@@ -246,6 +266,10 @@
 			$('.carousel').carousel();
 			$($('form')[0]).attr('action', window.location.href);
 		});
+		function cancel() {
+			var currentLocation = window.location;
+			window.location.assign(currentLocation+"?cancel=true" );
+		}
 	</script>
 	
 	</body>
