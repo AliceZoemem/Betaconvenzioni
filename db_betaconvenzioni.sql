@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.4
+-- version 4.7.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Creato il: Mar 13, 2018 alle 11:56
--- Versione del server: 10.1.30-MariaDB
--- Versione PHP: 5.6.33
+-- Creato il: Mar 17, 2018 alle 18:35
+-- Versione del server: 10.1.25-MariaDB
+-- Versione PHP: 7.1.7
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -111,15 +111,16 @@ INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Luogo`
 CREATE TABLE `tbl_feedback` (
   `IdUtente` int(11) NOT NULL,
   `IdConvenzione` int(11) NOT NULL,
-  `Voto` int(11) NOT NULL
+  `Voto` int(11) NOT NULL,
+  `Commento` longtext NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dump dei dati per la tabella `tbl_feedback`
 --
 
-INSERT INTO `tbl_feedback` (`IdUtente`, `IdConvenzione`, `Voto`) VALUES
-(1, 2, 5);
+INSERT INTO `tbl_feedback` (`IdUtente`, `IdConvenzione`, `Voto`, `Commento`) VALUES
+(1, 2, 5, '');
 
 -- --------------------------------------------------------
 
@@ -245,31 +246,26 @@ ALTER TABLE `tbl_utenti`
 --
 ALTER TABLE `tbl_allegati`
   MODIFY `IdAllegato` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT per la tabella `tbl_categorie`
 --
 ALTER TABLE `tbl_categorie`
   MODIFY `IdCategoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
 --
 -- AUTO_INCREMENT per la tabella `tbl_convenzioni`
 --
 ALTER TABLE `tbl_convenzioni`
   MODIFY `IdConvenzione` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
 --
 -- AUTO_INCREMENT per la tabella `tbl_immagini`
 --
 ALTER TABLE `tbl_immagini`
   MODIFY `IdImmagine` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
 --
 -- AUTO_INCREMENT per la tabella `tbl_utenti`
 --
 ALTER TABLE `tbl_utenti`
-  MODIFY `IdUtente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-COMMIT;
+  MODIFY `IdUtente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
