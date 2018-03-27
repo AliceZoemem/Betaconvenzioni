@@ -26,12 +26,40 @@
 		<script src="js/bootstrap.js"></script>
 		<link href="css/bootstrap.css" rel="stylesheet" type="text/css">
 		<script src="js/jquery.barrating.js"></script>
-		<script src="js/examples.js"></script>	
-		<link rel="stylesheet" type="text/css" href="css/stile.css">		
+		<script src="js/examples.js"></script>			
 		<script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
 		<script>tinymce.init({ selector:'textarea', height: '50vh' });</script>
 		
-		<style> 
+		<style>
+			#title_convenction{
+				margin-top:2%;
+			}
+			.left{
+				float : left;
+			}
+			.right{
+				float : right;
+			}
+			#img_convenction{
+				width:60%;
+			}
+			#contenuto_testo{
+				right:5%;
+				margin-top:3%;
+			}
+			#contenuto_img{
+				left: 5%;
+				margin-top: 2%;
+			}
+			#contenuto_allegati{
+				left:5%;
+			}
+			ul{	
+				list-style-type: none;
+			}
+			#carouselExampleIndicators{
+				width:80%;
+			}	
 			.carousel-item{
 				width:100%;
 				height:400px;
@@ -43,8 +71,7 @@
 			.right{
 				float:right;
 				margin: 1% 7%;
-			}
-		
+			}		
 			.pencil{
 				visiblity: visible;
 				display: inline;
@@ -56,18 +83,29 @@
 			.cancel{
 				visiblity: visible;
 				display: inline;
-				width: 4rem;
+				width: 3rem;
 				position: absolute;
 				right: 15%;
-				top: 4%;
+				top: 5%;
 			}
 			.mce-widget.mce-notification.mce-notification-warning.mce-has-close.mce-in{
 				display:none;
+			}
+			.back{
+				margin-left: 2%;
+				margin-top: 1vh;
+			}
+			.red{
+				color: red;
+			}
+			p{
+				margin: 0%;
 			}
 		</style>
 		
 	</head>
 	<body>
+		<img class='back' src='/img/back.png' onclick="window.location.href='/homepage.php'"> </img>
 		<button type="button" class="right" onclick="window.location.href='/logout.php'">Logout</button>
 		<?php 
 			$conn = InstauraConnessione();
@@ -107,7 +145,11 @@
 				</form>
 			</div>
 		</div>
+		
+		
+		
 		<?php
+			
 			if(isset ($_POST['change'])){
 				$var = $_POST['txtarea'];		
 				$conn = InstauraConnessione();
@@ -164,23 +206,57 @@
 						$conn = InstauraConnessione();
 						$sql_info_testo = "SELECT * FROM tbl_convenzioni WHERE IdConvenzione = " . $id_convenzione;
 						$result_info_testo = $conn->query($sql_info_testo);
+						/*
+							Categoria 
+							distanza
+							lista commenti
+							tbl_log visualizzazioni
+						*/
 						if ($result_info_testo->num_rows > 0){
 							//Remove tags strip_tags($string, 'tags')	Non funziona
 							$array =  mysqli_fetch_row($result_info_testo);
-							echo "<h2 id='title_convenction' >". $array[1] ."</h2>
-							<div>
-								". $array[2] ."
-							</div>
-							";
+							
+							AbbattiConnessione($conn);
+							
+							$conn = InstauraConnessione();
+							$sql_categoria = "SELECT Nome FROM tbl_categorie INNER JOIN tbl_convenzioni ON tbl_categorie.IdCategoria = tbl_convenzioni.IdCategoria WHERE IdConvenzione = " . $id_convenzione;
+							$result_categoria = $conn->query($sql_categoria);
+							$nome =  mysqli_fetch_row($result_categoria);
+							echo "<p> Nome Categoria : ".$nome[0] ."</p>";
+							AbbattiConnessione($conn);
+							
+							$lon = $typeadmin[6];
+							$lat = $typeadmin[5];
+							$conn = InstauraConnessione();
+							$sql_distanza = "SELECT sp_calculatedistance(".$array[4].",".$array[5].",".$lat.",".$lon.") AS Distanza";
+							$result_distanza = $conn->query($sql_distanza);
+							$dis =  mysqli_fetch_row($result_distanza);
+							echo "Distanza : ".round($dis[0], 1) ." km";
+							 
+							echo "<p> Luogo : ". $array[3] ."</p>";
+							$today = date("Y-m-d");  
+							if( ($array[7] - $today)< 7 && $array[7]!= '0000-00-00'){
+								echo "<p class='red'> scadenza : ". $array[7] ."</p>";
+							}else{
+								if($array[7] == '0000-00-00')
+									echo "<p> scadenza infinita</p>";
+								else
+									echo "<p> scadenza : ". $array[7] ."</p>";
+							}			
+							echo "<p> Media Voti"."</p>";
+							echo "<h2 id='title_convenction' >". $array[1] ."</h2>";
+							echo  "<div>". $array[2] ."</div>";
+							
 						}else{
 							echo "<h2 id='title_convenction' >Titolo non presente</h2>
+							<p> Luogo : non presente </p>
+							<p> scadenza : non presente </p>
 							<div>
 								<p id='descrizione'>Descrizione non presente</p>
 							</div>
 							";
-							
 						}
-						AbbattiConnessione($conn);
+						
 					?>
 						
 					<form action = "" method = "post">						
@@ -192,27 +268,35 @@
 								<option value="3">3</option>
 								<option value="4">4</option>
 								<option value="5">5</option>
-							</select> 
-							<input type="submit" name="feedback" value="VOTA">							
+							</select>
+							<p id="commento"></p>
+							<?php
+								$conn = InstauraConnessione();
+								$id_utente = $_COOKIE['auth_betaconvenzioni'];
+								$id_utente = Encryption($id_utente, 'd');							
+								$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
+								$result_control_insert = $conn->query($sql_control_insert);
+								if ($result_control_insert->num_rows <= 0)
+									$already_rating = 0;							
+								else{
+									$voto_stelle = mysqli_fetch_row($result_control_insert)[2];
+									$commento = mysqli_fetch_row($result_control_insert)[3]; 
+									echo ($commento);
+									echo "<script>
+										$(document).ready(function () {
+											$('select').barrating('clear');
+											$('select').barrating('set', ".$voto_stelle .");
+											$( '#commento' ).text('Commento : ".$commento."');
+										});
+									</script>
+									";	
+									$already_rating = 1;
+								}
+							?>
 						</div>  
+						<input type="submit" name="feedback" value="VOTA">
 					</form>
 					<?php
-						$conn = InstauraConnessione();
-						$id_utente = $_COOKIE['auth_betaconvenzioni'];
-						$id_utente = Encryption($id_utente, 'd');							
-						$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
-						$result_control_insert = $conn->query($sql_control_insert);
-						if ($result_control_insert->num_rows <= 0)
-							$already_rating = 0;
-						else{
-							echo "<script>
-								$(document).ready(function () {
-								$('select').barrating('clear');
-								$('select').barrating('set', ".mysqli_fetch_row($result_control_insert)[2].");
-							});
-							</script>";	
-							$already_rating = 1;
-						}
 						if(isset ($_POST['feedback'])){														
 							if ($already_rating == 0) {								
 								$option = isset ($_POST['rating']) ? $_POST['rating'] : "";
@@ -229,10 +313,10 @@
 									$('select').barrating('clear');
 									$('select').barrating('set', ".$voto.");
 								});
-								</script>";									
-							}else
-								echo "<script>alert('La convenzione è già stata votata')</script>";;
-							
+								</script>
+								<p>" . $commento. "</p>
+								";									
+							}
 						}
 						AbbattiConnessione($conn);
 					?>
