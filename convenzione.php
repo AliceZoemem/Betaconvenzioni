@@ -31,6 +31,37 @@
 		<script>tinymce.init({ selector:'textarea', height: '50vh' });</script>
 		
 		<style>
+			.hidden{
+				display:none;
+			}
+			.box:hover{
+				background-color: #ccc;
+			}
+			.container_comments {
+				width: 75%;
+				margin-left:15%;
+				border: 2px solid black;
+			}
+			.box{
+				box-sizing: border-box;
+				width: 100%;
+				border-bottom: 2px solid black;
+				text-align:center;
+			}
+			
+			.box1 {
+				box-sizing: border-box;
+				width: 80%;
+				float: left;
+				border-right: 2px solid black;
+				padding: 1%
+			}
+			.box2 {
+				box-sizing: border-box;
+				width: 20%;
+				float: left;
+				padding: 1%
+			}
 			#commento{
 				width: 100%;
 			}
@@ -108,12 +139,18 @@
 			p{
 				margin: 0%;
 			}
+			.back:hover {
+			   filter: brightness(50%);
+			}
+			.logout:hover{
+				color:brown;
+			}
 		</style>
 		
 	</head>
 	<body>
 		<img class='back' src='/img/back.png' onclick="window.location.href='/homepage.php'"> </img>
-		<button type="button" class="right" onclick="window.location.href='/logout.php'">Logout</button>
+		<button type="button" class="right logout" onclick="window.location.href='/logout.php'">Logout</button>
 		<?php 
 			$conn = InstauraConnessione();
 			$id_utente = $_COOKIE['auth_betaconvenzioni'];
@@ -123,9 +160,7 @@
 			$typeadmin =  mysqli_fetch_row($result_isAdmin);
 			if($typeadmin[7] != 0){
 				echo("<img class='pencil' src='/img/pencil.png' data-toggle='modal' data-target='#exampleModal'></img>");
-				// $actual_link = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-				// $actual_link = "javascript:window.location.href='".$actual_link."?cancel=true'";
-				echo("<img class='cancel' src='/img/X.png' onclick='cancel()' ></img>");
+				echo("<img class='cancel' src='/img/X.png' onClick='cancel()' ></img>");
 			}
 			AbbattiConnessione($conn);	
 			$conn = InstauraConnessione();
@@ -133,6 +168,7 @@
 			$result_text = $conn->query($sql_text);
 			$text=  mysqli_fetch_row($result_text);			
 		?>
+		
 		
 		<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
 			<div class="modal-dialog" role="document">
@@ -153,10 +189,8 @@
 			</div>
 		</div>
 		
-		
-		
 		<?php
-			
+			//popup mantiene testo vecchio se non ri refresha
 			if(isset ($_POST['change'])){
 				$var = $_POST['txtarea'];		
 				$conn = InstauraConnessione();
@@ -214,8 +248,6 @@
 						$sql_info_testo = "SELECT * FROM tbl_convenzioni WHERE IdConvenzione = " . $id_convenzione;
 						$result_info_testo = $conn->query($sql_info_testo);
 						/*
-							Categoria 
-							distanza
 							lista commenti
 							tbl_log visualizzazioni
 						*/
@@ -281,6 +313,7 @@
 									else{
 										$voto_stelle = mysqli_fetch_row($result_control_insert)[2];
 										$commento = mysqli_fetch_row($result_control_insert)[3]; 
+										//$commento rimane vuoto
 										echo ($commento);
 										echo "<script>
 											$('#commento').text('Commento : ".$commento."');
@@ -309,21 +342,20 @@
 										$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.",'')";
 									
 									$conn->query($sql_insert);
-									echo "<script>
-										$(document).ready(function () {
-										$('select').barrating('clear');
-										$('select').barrating('set', ".$voto.");
-									});
-									</script>
-									";									
+																	
 								}else{
-									echo 'entra';
 									AbbattiConnessione($conn);
 									$conn = InstauraConnessione();
-									$sql_update = "UPDATE tbl_feedback SET Voto = ". $voto ." AND Commento = '". $commento ."' WHERE IdConvenzione = " .$id_convenzione ." AND IdUtente = " . $id_utente;
-									echo $sql_update;
+									$sql_update = "UPDATE tbl_feedback SET Voto = ". $voto ." , Commento = '". $commento ."' WHERE IdConvenzione = " .$id_convenzione ." AND IdUtente = " . $id_utente;
 									$conn->query($sql_update);
 								}
+								echo "<script>
+									$(document).ready(function () {
+									$('select').barrating('clear');
+									$('select').barrating('set', ".$voto.");
+								});
+								</script>
+								";	
 							}
 							AbbattiConnessione($conn);
 						?>
@@ -350,17 +382,40 @@
 				</div>
 			</div>
 		</div>	
+		<div class="container_comments">
+			<div class="box" onClick="makevisible()">COMMENTI</div>
+			<div id="box_appear" class="hidden">
+				<div class="box1">This div occupies theTThis div occupies thThis div occupies thThis div occupies thThis div occupies thhis div occupies thThis div occupies th left half</div>
+				<div class="box2">This div occupies the right half</div>
+				
+				<div class="box1">This div occupies theTThis div occupies thThis div occupies thThis div occupies thThis div occupies thhis div occupies thThis div occupies th left half</div>
+				<div class="box2">This div occupies the right half</div>
+				
+				<div style="clear:both;"></div>
+			</div>
+		</div>
 
 	
 	
 	<script>
+	var hidden = 1;
 		$(document).ready(function () {
 			$('.carousel').carousel();
 			$($('form')[0]).attr('action', window.location.href);
 		});
 		function cancel() {
-			var currentLocation = window.location;
-			window.location.assign(currentLocation+"?cancel=true" );
+			// var currentLocation = window.location;
+			// window.location.assign(currentLocation+"?cancel=true" );
+			alert('cos');
+		}
+		function makevisible(){
+			if(hidden == 1){
+				hidden = 0;
+				$('#box_appear').show("slow");
+			}else{
+				hidden = 1;
+				$('#box_appear').hide("slow");
+			}
 		}
 	</script>
 	
