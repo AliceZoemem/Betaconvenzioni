@@ -31,44 +31,58 @@
 		<script>tinymce.init({ selector:'textarea', height: '50vh' });</script>
 		
 		<style>
+			#box_appear{
+				position: relative;
+				margin-left: 20%;
+				width: 250%;
+				margin-top:5vh;
+				border-bottom: 2px solid black;
+			}
 			.hidden{
 				display:none;
 			}
 			.box:hover{
-				background-color: #ccc;
+				background-color: #4588a8;
+				
 			}
 			.container_comments {
-				width: 75%;
-				margin-left:15%;
-				border: 2px solid black;
+				width:30%;
+				margin-top:2vh;
 			}
 			.box{
 				box-sizing: border-box;
 				width: 100%;
 				border-bottom: 2px solid black;
 				text-align:center;
+				position: absolute;
+				left: 5%;
+				width: 31%;
+				border: 2px solid black;
 			}
 			
 			.box1 {
 				box-sizing: border-box;
 				width: 80%;
 				float: left;
-				border-right: 2px solid black;
-				padding: 1%
+				padding: 1%;
 			}
 			.box2 {
 				box-sizing: border-box;
 				width: 20%;
 				float: left;
-				padding: 1%
+				padding: 1%;
+			}
+			.box3{
+				position:absolute;
+				margin-top:1vh;
 			}
 			#commento{
 				width: 100%;
 			}
-			#response{
+			<!--#response{
 				text-align: left;
 				margin-top: 5%;
-			}
+			}-->
 			#title_convenction{
 				margin-top:2%;
 			}
@@ -290,78 +304,7 @@
 							
 						}
 					?>
-					<div id="response">	
-						<form action = "" method = "post">						
-							<input id="commento" type="text" name="commento" value="" placeholder="Lascia un commento">	
-							<div class="stars stars-example-css">
-								<select id="example-css" name="rating" autocomplete="off">
-									<option value="1">1</option>
-									<option value="2">2</option>
-									<option value="3">3</option>
-									<option value="4">4</option>
-									<option value="5">5</option>
-								</select>
-								<p id="commento"></p>
-								<?php
-									$conn = InstauraConnessione();
-									$id_utente = $_COOKIE['auth_betaconvenzioni'];
-									$id_utente = Encryption($id_utente, 'd');							
-									$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
-									$result_control_insert = $conn->query($sql_control_insert);
-									if ($result_control_insert->num_rows <= 0)
-										$already_rating = 0;							
-									else{
-										$voto_stelle = mysqli_fetch_row($result_control_insert)[2];
-										$commento = mysqli_fetch_row($result_control_insert)[3]; 
-										//$commento rimane vuoto
-										echo ($commento);
-										echo "<script>
-											$('#commento').text('Commento : ".$commento."');
-											$(document).ready(function () {
-												$('select').barrating('clear');
-												$('select').barrating('set', ".$voto_stelle .");
-												
-											});
-										</script>
-										";	
-										$already_rating = 1;
-									}
-								?>
-							</div>  
-							<input type="submit" name="feedback" value="VOTA">
-						</form>
-						<?php
-							if(isset ($_POST['feedback'])){		
-								$option = isset ($_POST['rating']) ? $_POST['rating'] : "";
-								$voto = intval($option);
-								$commento = $_POST['commento'];
-								if ($already_rating == 0) {	
-									if($commento != "")
-										$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto, Commento)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.",'".$commento."')";
-									else
-										$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.",'')";
-									
-									$conn->query($sql_insert);
-																	
-								}else{
-									AbbattiConnessione($conn);
-									$conn = InstauraConnessione();
-									$sql_update = "UPDATE tbl_feedback SET Voto = ". $voto ." , Commento = '". $commento ."' WHERE IdConvenzione = " .$id_convenzione ." AND IdUtente = " . $id_utente;
-									$conn->query($sql_update);
-								}
-								echo "<script>
-									$(document).ready(function () {
-									$('select').barrating('clear');
-									$('select').barrating('set', ".$voto.");
-								});
-								</script>
-								";	
-							}
-							AbbattiConnessione($conn);
-						?>
-					</div>
-				</div>
-			</div>
+					
 			<div class="row">
 				<div class="col-4 col-md-auto" id="contenuto_allegati">
 					<ul id="elenco_allegati">
@@ -385,15 +328,107 @@
 		<div class="container_comments">
 			<div class="box" onClick="makevisible()">COMMENTI</div>
 			<div id="box_appear" class="hidden">
-				<div class="box1">This div occupies theTThis div occupies thThis div occupies thThis div occupies thThis div occupies thhis div occupies thThis div occupies th left half</div>
-				<div class="box2">This div occupies the right half</div>
-				
-				<div class="box1">This div occupies theTThis div occupies thThis div occupies thThis div occupies thThis div occupies thhis div occupies thThis div occupies th left half</div>
-				<div class="box2">This div occupies the right half</div>
+				<form action = "" method = "post">						
+					<div class="box1"><input id="commento" type="text" name="commento" value="" placeholder="Lascia un commento"></div>
+					<div class="stars stars-example-css box2">
+						<select id="example-css" name="rating" autocomplete="off">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5">5</option>
+						</select>
+						<?php
+							$conn = InstauraConnessione();
+							$id_utente = $_COOKIE['auth_betaconvenzioni'];
+							$id_utente = Encryption($id_utente, 'd');							
+							$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
+							$result_control_insert = $conn->query($sql_control_insert);
+							if ($result_control_insert->num_rows <= 0)
+								$already_rating = 0;							
+							else{
+								$voto_stelle = mysqli_fetch_row($result_control_insert)[2];
+								$commento = mysqli_fetch_row($result_control_insert)[3]; 
+								//$commento rimane vuoto
+								echo ($commento);
+								echo "<script>
+									$(document).ready(function () {
+										$('select').barrating('clear');
+										$('select').barrating('set', ".$voto_stelle .");
+										
+									});
+								</script>
+								";	
+								$already_rating = 1;
+							}
+						?>
+					</div>  
+					<input class="box3" type="submit" name="feedback" value="VOTA">
+				</form>
+				<?php
+					if(isset ($_POST['feedback'])){		
+						$option = isset ($_POST['rating']) ? $_POST['rating'] : "";
+						$voto = intval($option);
+						$commento = $_POST['commento'];
+						if ($already_rating == 0) {	
+							if($commento != "")
+								$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto, Commento)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.",'".$commento."')";
+							else
+								$sql_insert = "INSERT INTO tbl_feedback (IdUtente, IdConvenzione, Voto)VALUES(" . $id_utente.",".$id_convenzione.",".$voto.",'')";
+							
+							$conn->query($sql_insert);
+															
+						}else{
+							AbbattiConnessione($conn);
+							$conn = InstauraConnessione();
+							$sql_update = "UPDATE tbl_feedback SET Voto = ". $voto ." , Commento = '". $commento ."' WHERE IdConvenzione = " .$id_convenzione ." AND IdUtente = " . $id_utente;
+							$conn->query($sql_update);
+						}
+						echo "<script>
+							$(document).ready(function () {
+							$('select').barrating('clear');
+							$('select').barrating('set', ".$voto.");
+						});
+						</script>
+						";	
+					}
+					AbbattiConnessione($conn);
+				?>
+				<?php
+					$conn = InstauraConnessione();
+					$sql_feedback = "SELECT * FROM tbl_feedback WHERE IdConvenzione = " . $id_convenzione;
+					$result_feedback = $conn->query($sql_feedback);
+
+					foreach ($result_feedback as $key => $item)
+					{
+						echo "<div class='box1'>".$item['Commento']."</div>";
+						echo "<div class='stars stars-example-css box2'>
+							<select id='example-css' name='rating' class='".$item['IdUtente'].$item['IdConvenzione']."' autocomplete='off'>
+								<option value='1'>1</option>
+								<option value='2'>2</option>
+								<option value='3'>3</option>
+								<option value='4'>4</option>
+								<option value='5'>5</option>
+							</select>
+						</div>";
+						echo "<script>
+							$(document).ready(function () {
+							$('.".$item['IdUtente'].$item['IdConvenzione']."').barrating('clear');
+							$('select').barrating('set', ".$item['Voto'].");
+						});
+						</script>
+						";	
+						// echo "<div class='box2'>".$item['Voto']."</div>";	
+							
+						
+					}
+					AbbattiConnessione($conn);
+				?>
 				
 				<div style="clear:both;"></div>
 			</div>
 		</div>
+		
 
 	
 	
@@ -419,6 +454,7 @@
 		}
 	</script>
 	
+
 	</body>
 	
 	
