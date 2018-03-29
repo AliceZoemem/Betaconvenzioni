@@ -2,10 +2,6 @@
 	require_once('functions/functions.php');
 	$cookie_name = 'auth_betaconvenzioni';
 	if(isset($_COOKIE[$cookie_name])){
-		if(isset($_GET['cancel']))
-		{
-			echo "safasf";
-		}
 		if($_GET['convenzione'])
 			$id_convenzione = $_GET['convenzione'];
 		else
@@ -31,35 +27,22 @@
 		<script>tinymce.init({ selector:'textarea', height: '50vh' });</script>
 		
 		<style>
+			#altri_commenti{
+				margin-left:1%;		
+			}
 			#box_appear{
 				position: relative;
 				margin-left: 20%;
 				width: 250%;
 				margin-top:5vh;
-				border-bottom: 2px solid black;
 			}
 			.hidden{
 				display:none;
-			}
-			.box:hover{
-				background-color: #4588a8;
-				
 			}
 			.container_comments {
 				width:30%;
 				margin-top:2vh;
 			}
-			.box{
-				box-sizing: border-box;
-				width: 100%;
-				border-bottom: 2px solid black;
-				text-align:center;
-				position: absolute;
-				left: 5%;
-				width: 31%;
-				border: 2px solid black;
-			}
-			
 			.box1 {
 				box-sizing: border-box;
 				width: 80%;
@@ -79,10 +62,6 @@
 			#commento{
 				width: 100%;
 			}
-			<!--#response{
-				text-align: left;
-				margin-top: 5%;
-			}-->
 			#title_convenction{
 				margin-top:2%;
 			}
@@ -192,7 +171,21 @@
 					</div>
 					<div class="modal-body">
 						<textarea name="txtarea" id="text_fill">
-							<?php echo $text[2];?>	
+							<?php
+								$pageRefreshed = isset($_SERVER['HTTP_CACHE_CONTROL']) &&($_SERVER['HTTP_CACHE_CONTROL'] === 'max-age=0' ||  $_SERVER['HTTP_CACHE_CONTROL'] == 'no-cache'); 
+								if($pageRefreshed == 1){
+									AbbattiConnessione($conn);	
+									$conn = InstauraConnessione();
+									$sql_text = "SELECT Descrizione FROM tbl_convenzioni WHERE Idconvenzione = " . $id_convenzione;
+									$result_text = $conn->query($sql_text);
+									$text=  mysqli_fetch_row($result_text);	
+									echo $text[0];
+									AbbattiConnessione($conn);	
+								}else{
+									echo $text[2];
+									AbbattiConnessione($conn);	
+								}
+							?>	
 						</textarea>
 					</div>
 					<div class="modal-footer">
@@ -204,7 +197,6 @@
 		</div>
 		
 		<?php
-			//popup mantiene testo vecchio se non ri refresha
 			if(isset ($_POST['change'])){
 				$var = $_POST['txtarea'];		
 				$conn = InstauraConnessione();
@@ -262,11 +254,10 @@
 						$sql_info_testo = "SELECT * FROM tbl_convenzioni WHERE IdConvenzione = " . $id_convenzione;
 						$result_info_testo = $conn->query($sql_info_testo);
 						/*
-							lista commenti
+							media stelle
 							tbl_log visualizzazioni
 						*/
 						if ($result_info_testo->num_rows > 0){
-							//Remove tags strip_tags($string, 'tags')	Non funziona
 							$array =  mysqli_fetch_row($result_info_testo);
 							
 							AbbattiConnessione($conn);
@@ -326,8 +317,7 @@
 			</div>
 		</div>	
 		<div class="container_comments">
-			<div class="box" onClick="makevisible()">COMMENTI</div>
-			<div id="box_appear" class="hidden">
+			<div id="box_appear" >
 				<form action = "" method = "post">						
 					<div class="box1"><input id="commento" type="text" name="commento" value="" placeholder="Lascia un commento"></div>
 					<div class="stars stars-example-css box2">
@@ -338,33 +328,23 @@
 							<option value="4">4</option>
 							<option value="5">5</option>
 						</select>
-						<?php
-							$conn = InstauraConnessione();
-							$id_utente = $_COOKIE['auth_betaconvenzioni'];
-							$id_utente = Encryption($id_utente, 'd');							
-							$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
-							$result_control_insert = $conn->query($sql_control_insert);
-							if ($result_control_insert->num_rows <= 0)
-								$already_rating = 0;							
-							else{
-								$voto_stelle = mysqli_fetch_row($result_control_insert)[2];
-								$commento = mysqli_fetch_row($result_control_insert)[3]; 
-								//$commento rimane vuoto
-								echo ($commento);
-								echo "<script>
-									$(document).ready(function () {
-										$('select').barrating('clear');
-										$('select').barrating('set', ".$voto_stelle .");
-										
-									});
-								</script>
-								";	
-								$already_rating = 1;
-							}
-						?>
 					</div>  
 					<input class="box3" type="submit" name="feedback" value="VOTA">
 				</form>
+				
+				<?php
+					$conn = InstauraConnessione();
+					$id_utente = $_COOKIE['auth_betaconvenzioni'];
+					$id_utente = Encryption($id_utente, 'd');							
+					$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
+					$result_control_insert = $conn->query($sql_control_insert);
+					if ($result_control_insert->num_rows <= 0){
+						$already_rating = 0;	
+					}else{
+						$vettore_info = mysqli_fetch_row($result_control_insert);
+						$already_rating = 1;
+					}
+				?>
 				<?php
 					if(isset ($_POST['feedback'])){		
 						$option = isset ($_POST['rating']) ? $_POST['rating'] : "";
@@ -384,42 +364,77 @@
 							$sql_update = "UPDATE tbl_feedback SET Voto = ". $voto ." , Commento = '". $commento ."' WHERE IdConvenzione = " .$id_convenzione ." AND IdUtente = " . $id_utente;
 							$conn->query($sql_update);
 						}
-						echo "<script>
-							$(document).ready(function () {
-							$('select').barrating('clear');
-							$('select').barrating('set', ".$voto.");
-						});
-						</script>
-						";	
+						
+						
 					}
 					AbbattiConnessione($conn);
+					if($already_rating == 0){
+						echo "<div class='box1'>Convenzione non ancora votata</div>";	
+					}else{
+						$pageRefreshed = isset($_SERVER['HTTP_CACHE_CONTROL']) &&($_SERVER['HTTP_CACHE_CONTROL'] === 'max-age=0' ||  $_SERVER['HTTP_CACHE_CONTROL'] == 'no-cache'); 
+						if($pageRefreshed == 1){
+							$conn = InstauraConnessione();
+							$sql_control_insert = "SELECT * FROM tbl_feedback WHERE IdUtente = " . $id_utente ." AND IdConvenzione = ". $id_convenzione;
+							$result_control_insert = $conn->query($sql_control_insert);
+							$vettore_info = mysqli_fetch_row($result_control_insert);
+							echo "<div class='box1'>".$vettore_info[3]."</div>";
+							echo "<div class='stars stars-example-css box2'>
+									<div class='br-wrapper br-theme-css-stars'>
+										<div class='br-widget'>";
+							for($i=1; $i< 6; $i++){
+								if($i > $vettore_info[2])
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='1' class=''></a>";
+								else
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='2' class='br-selected br-current'></a>";
+							}
+							echo"	</div>
+								</div>
+							</div>";
+							AbbattiConnessione($conn);
+						}else{							
+							echo "<div class='box1'>".$vettore_info[3]."</div>";
+							echo "<div class='stars stars-example-css box2'>
+									<div class='br-wrapper br-theme-css-stars'>
+										<div class='br-widget'>";
+							for($i=1; $i< 6; $i++){
+								if($i > $vettore_info[2])
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='1' class=''></a>";
+								else
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='2' class='br-selected br-current'></a>";
+							}
+							echo"	</div>
+								</div>
+							</div>";
+						}
+					}
 				?>
+				
+				<br/><br/><br/><br/>
+				<h3 id="altri_commenti">ALTRI COMMENTI</h3>
+				
 				<?php
 					$conn = InstauraConnessione();
 					$sql_feedback = "SELECT * FROM tbl_feedback WHERE IdConvenzione = " . $id_convenzione;
 					$result_feedback = $conn->query($sql_feedback);
-
+					
 					foreach ($result_feedback as $key => $item)
 					{
-						echo "<div class='box1'>".$item['Commento']."</div>";
-						echo "<div class='stars stars-example-css box2'>
-							<select id='example-css' name='rating' class='".$item['IdUtente'].$item['IdConvenzione']."' autocomplete='off'>
-								<option value='1'>1</option>
-								<option value='2'>2</option>
-								<option value='3'>3</option>
-								<option value='4'>4</option>
-								<option value='5'>5</option>
-							</select>
-						</div>";
-						echo "<script>
-							$(document).ready(function () {
-							$('.".$item['IdUtente'].$item['IdConvenzione']."').barrating('clear');
-							$('select').barrating('set', ".$item['Voto'].");
-						});
-						</script>
-						";	
-						// echo "<div class='box2'>".$item['Voto']."</div>";	
-							
+						if($item['IdUtente'] == $id_utente & $item['IdConvenzione'] == $id_convenzione){							
+						}else{
+							echo "<div class='box1'>".$item['Commento']."</div>";
+							echo "<div class='stars stars-example-css box2'>
+									<div class='br-wrapper br-theme-css-stars'>
+										<div class='br-widget'>";
+							for($i=1; $i< 6; $i++){
+								if($i > $item['Voto'])
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='1' class=''></a>";
+								else
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='2' class='br-selected br-current'></a>";
+							}
+							echo"	</div>
+								</div>
+							</div>";
+						}
 						
 					}
 					AbbattiConnessione($conn);
@@ -443,15 +458,7 @@
 			// window.location.assign(currentLocation+"?cancel=true" );
 			alert('cos');
 		}
-		function makevisible(){
-			if(hidden == 1){
-				hidden = 0;
-				$('#box_appear').show("slow");
-			}else{
-				hidden = 1;
-				$('#box_appear').hide("slow");
-			}
-		}
+		
 	</script>
 	
 
