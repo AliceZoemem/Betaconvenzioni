@@ -63,7 +63,7 @@
 				width: 100%;
 			}
 			#title_convenction{
-				margin-top:2%;
+				margin-top:4%;
 			}
 			.left{
 				float : left;
@@ -138,16 +138,64 @@
 			.logout:hover{
 				color:brown;
 			}
+			#media_voti{
+				display: inline-block;
+				width: 50%;
+				padding-bottom: 2%;
+				padding-left: 1%;
+			}
+			#media_voti .br-theme-css-stars .br-widget a{
+				font-size: 230%;
+				margin-right: 3%;
+			}
+			#media{
+				display: inline-block;
+			}
+			.br-fractional{
+				content: '\f123';
+				color: #50E3C2;
+			}
 		</style>
 		
 	</head>
 	<body>
+		<?php
+			$id_utente = $_COOKIE['auth_betaconvenzioni'];
+			$id_utente = Encryption($id_utente, 'd');
+			$pageRefreshed = isset($_SERVER['HTTP_CACHE_CONTROL']) &&($_SERVER['HTTP_CACHE_CONTROL'] === 'max-age=0' ||  $_SERVER['HTTP_CACHE_CONTROL'] == 'no-cache'); 
+			if($pageRefreshed == 0){
+				$sql_check_log = "SELECT * FROM tbl_log WHERE IdConvenzione = ".$id_convenzione. " AND IdUtente = ".$id_utente;
+				$conn = InstauraConnessione();
+				$result_check_log = $conn->query($sql_check_log);
+				if ($result_check_log->num_rows > 0){
+					$info_log =  mysqli_fetch_row($result_check_log);
+					$last_visit = str_replace("-","",$info_log[3]);
+					$last_visit = str_replace(" ","",$last_visit);
+					$last_visit = str_replace(":","",$last_visit);
+					$today = date("Ymd").date("His");
+					if(($today - $last_visit)> 100000){
+						$new_contatore = $info_log[2] + 1;
+						$new_today = date("Y-m-d"). " ".date("H:i:s");
+						$conn = InstauraConnessione();
+						$sql_update_log = "UPDATE tbl_log SET Contatore = ". $new_contatore .", UltimaVisualizzazione = '".$new_today."' WHERE IdConvenzione = ".$id_convenzione. " AND IdUtente = ".$id_utente;
+						$conn->query($sql_update_log);
+						AbbattiConnessione($conn);
+					}
+				}else{
+					AbbattiConnessione($conn);	
+					$sql_insert_log ="INSERT INTO tbl_log (IdUtente, IdConvenzione, Contatore, UltimaVisualizzazione)VALUES(" . $id_utente.",".$id_convenzione.",1, CURRENT_TIMESTAMP())";
+					$conn = InstauraConnessione();
+					$conn->query($sql_insert_log);
+					AbbattiConnessione($conn);	
+				}
+			}
+			
+			
+		?>
 		<img class='back' src='/img/back.png' onclick="window.location.href='/homepage.php'"> </img>
 		<button type="button" class="right logout" onclick="window.location.href='/logout.php'">Logout</button>
 		<?php 
 			$conn = InstauraConnessione();
-			$id_utente = $_COOKIE['auth_betaconvenzioni'];
-			$id_utente = Encryption($id_utente, 'd');
 			$sql_isAdmin = "SELECT * FROM tbl_utenti WHERE IdUtente = " . $id_utente;
 			$result_isAdmin = $conn->query($sql_isAdmin);
 			$typeadmin =  mysqli_fetch_row($result_isAdmin);
@@ -254,8 +302,7 @@
 						$sql_info_testo = "SELECT * FROM tbl_convenzioni WHERE IdConvenzione = " . $id_convenzione;
 						$result_info_testo = $conn->query($sql_info_testo);
 						/*
-							media stelle
-							tbl_log visualizzazioni
+							elimina convenzione
 						*/
 						if ($result_info_testo->num_rows > 0){
 							$array =  mysqli_fetch_row($result_info_testo);
@@ -289,10 +336,31 @@
 								else
 									echo "<p> scadenza : ". $new_scad ."</p>";
 							}			
-							echo "<p> Media Voti"."</p>";
+							$conn = InstauraConnessione();
+							$sql_tot_voti = "SELECT AVG(Voto) FROM tbl_feedback WHERE IdConvenzione = ".$id_convenzione;
+							$result_tot_voti = $conn->query($sql_tot_voti);
+							$media = mysqli_fetch_row($result_tot_voti)[0];
+							echo "<p id='media'> Media Voti : ". round($media, 1). "</p>";
+							echo "<div id='media_voti'>
+								<div class='stars stars-example-css'>
+									<div class='br-wrapper br-theme-css-stars'>
+										<div class='br-widget'>";							
+							
+							for($i=1; $i< 6; $i++){
+								if($i > $media)
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-fractional'></a>";
+								else{
+									// echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
+								}
+							}
+							echo "</div>
+									</div>
+								</div>
+							</div>";
 							echo "<h2 id='title_convenction' >". $array[1] ."</h2>";
 							echo  "<div>". $array[2] ."</div>";
-							
+							AbbattiConnessione($conn);
 						}
 					?>
 					
@@ -383,9 +451,9 @@
 										<div class='br-widget'>";
 							for($i=1; $i< 6; $i++){
 								if($i > $vettore_info[2])
-									echo "<a href='#' data-rating-value='".$i."' data-rating-text='1' class=''></a>";
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class=''></a>";
 								else
-									echo "<a href='#' data-rating-value='".$i."' data-rating-text='2' class='br-selected br-current'></a>";
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
 							}
 							echo"	</div>
 								</div>
@@ -398,9 +466,9 @@
 										<div class='br-widget'>";
 							for($i=1; $i< 6; $i++){
 								if($i > $vettore_info[2])
-									echo "<a href='#' data-rating-value='".$i."' data-rating-text='1' class=''></a>";
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class=''></a>";
 								else
-									echo "<a href='#' data-rating-value='".$i."' data-rating-text='2' class='br-selected br-current'></a>";
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
 							}
 							echo"	</div>
 								</div>
@@ -427,9 +495,9 @@
 										<div class='br-widget'>";
 							for($i=1; $i< 6; $i++){
 								if($i > $item['Voto'])
-									echo "<a href='#' data-rating-value='".$i."' data-rating-text='1' class=''></a>";
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class=''></a>";
 								else
-									echo "<a href='#' data-rating-value='".$i."' data-rating-text='2' class='br-selected br-current'></a>";
+									echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
 							}
 							echo"	</div>
 								</div>
