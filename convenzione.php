@@ -27,6 +27,23 @@
 		<script>tinymce.init({ selector:'textarea', height: '50vh' });</script>
 		
 		<style>
+			.mod1{
+				float: right;
+				margin-right: 50%;
+			}
+			.mod2{
+				float: right;
+				margin-right: 50%;
+				padding-top: 3%;
+			}
+			.mod3{
+				margin-left: 75%;
+				margin-bottom: 1%;
+			}
+			.mod4{
+				float: right;
+				margin-right: 50%;
+			}
 			#altri_commenti{
 				margin-left:1%;		
 			}
@@ -155,6 +172,31 @@
 				content: '\f123';
 				color: #50E3C2;
 			}
+			#prova{
+				background: url(img/pencil.png) no-repeat; 
+				border: none;
+				width: 5%;
+				height: 6%;
+				background-size: 100%;
+				float: right;
+				margin-right: 50%;
+			}
+			#prova2{
+				background: url(img/pencil.png) no-repeat; 
+				border: none;
+				width: 5%;
+				height: 6%;
+				background-size: 100%;
+				margin-left: 75%;
+			}
+			#scadenza{
+				margin-top:2%;
+			}
+			#remove_photo{
+				position: absolute;
+				left: 30%;
+				bottom: 70%;
+			}
 		</style>
 		
 	</head>
@@ -200,7 +242,6 @@
 			$result_isAdmin = $conn->query($sql_isAdmin);
 			$typeadmin =  mysqli_fetch_row($result_isAdmin);
 			if($typeadmin[7] != 0){
-				echo("<img class='pencil' src='/img/pencil.png' data-toggle='modal' data-target='#exampleModal'></img>");
 				echo("<img class='cancel' src='/img/X.png' onClick='cancel()' ></img>");
 			}
 			AbbattiConnessione($conn);	
@@ -211,52 +252,15 @@
 		?>
 		
 		
-		<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-			<div class="modal-dialog" role="document">
-				<form class="modal-content" action = "" method = "post">
-					<div class="modal-header">
-						<h5 class="modal-title" id="exampleModalLabel"><?php echo $text[1];?></h5>
-					</div>
-					<div class="modal-body">
-						<textarea name="txtarea" id="text_fill">
-							<?php
-								$pageRefreshed = isset($_SERVER['HTTP_CACHE_CONTROL']) &&($_SERVER['HTTP_CACHE_CONTROL'] === 'max-age=0' ||  $_SERVER['HTTP_CACHE_CONTROL'] == 'no-cache'); 
-								if($pageRefreshed == 1){
-									AbbattiConnessione($conn);	
-									$conn = InstauraConnessione();
-									$sql_text = "SELECT Descrizione FROM tbl_convenzioni WHERE Idconvenzione = " . $id_convenzione;
-									$result_text = $conn->query($sql_text);
-									$text=  mysqli_fetch_row($result_text);	
-									echo $text[0];
-									AbbattiConnessione($conn);	
-								}else{
-									echo $text[2];
-									AbbattiConnessione($conn);	
-								}
-							?>	
-						</textarea>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-						<input type="submit" name="change" value="Cambia" class="btn btn-primary"/>
-					</div>
-				</form>
-			</div>
-		</div>
 		
-		<?php
-			if(isset ($_POST['change'])){
-				$var = $_POST['txtarea'];		
-				$conn = InstauraConnessione();
-				$sql_insert = "UPDATE tbl_convenzioni SET Descrizione = '". $var ."' WHERE IdConvenzione = " .$id_convenzione;
-				$conn->query($sql_insert);
-				AbbattiConnessione($conn);
-			}
-		?>
 		
 		<div class="container-fluid">
 			<div class="row">
-				<div class="col-sm-6" id="contenuto_img">
+				
+				<div class="col-sm-6" id="contenuto_img"><?php
+					if($typeadmin[7] != 0)
+						echo "<button id='prova2' data-toggle='modal' onclick='myFunction()'></button>";
+				?>
 					<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
 						<ul class="carousel-indicators">
 							<?php
@@ -276,6 +280,7 @@
 						</ul>
 						<div class="carousel-inner">
 							<?php
+								
 								foreach ($result_immagini as $key => $item)
 								{
 									if($key == 0)
@@ -296,6 +301,32 @@
 						</a>
 					</div>
 				</div>
+				<script>
+					var i = 0;
+					var y = 0;
+					function myFunction() {
+						if(i == 0){
+							i = 1;
+							var btn = document.createElement("BUTTON");
+							btn.id = "remove_photo";
+							var t = document.createTextNode("X");
+							btn.appendChild(t);
+							document.body.appendChild(btn);
+						}else{
+							if(y == 0){
+								y = 1;
+								document.getElementById("remove_photo").style.display = "none";
+								document.getElementById("remove_photo").style.visibility = "hidden";
+							}
+							else{
+								y = 0;
+								document.getElementById("remove_photo").style.display = "block";
+								document.getElementById("remove_photo").style.visibility = "visible";
+							}
+						}
+						
+					}
+				</script>
 				<div class="col-sm-6" id="contenuto_testo">
 					<?php
 						$conn = InstauraConnessione();
@@ -328,14 +359,17 @@
 							$today = date("Y-m-d"); 
 							$new_scad = str_replace("-","",$array[7]);
 							$new_today = str_replace("-","",$today);
+							if($typeadmin[7] != 0)
+								echo "<button id='prova' data-toggle='modal' data-target='#exampleModal' onclick='myFunction()'></button>";
 							if( ($new_scad - $new_today)< 7 && $new_scad != '00000000'){
-								echo "<p class='red'> scadenza : ". $new_scad ."</p>";
+								echo "<p id='scadenza' class='red'> scadenza : ". $new_scad ."</p>";
 							}else{
 								if($new_scad == '00000000')
-									echo "<p> scadenza infinita</p>";
+									echo "<p id='scadenza'> scadenza infinita</p>";
 								else
-									echo "<p> scadenza : ". $new_scad ."</p>";
-							}			
+									echo "<p id='scadenza'> scadenza : ". $new_scad ."</p>";
+							}		
+							echo '<br/>';							
 							$conn = InstauraConnessione();
 							$sql_tot_voti = "SELECT AVG(Voto) FROM tbl_feedback WHERE IdConvenzione = ".$id_convenzione;
 							$result_tot_voti = $conn->query($sql_tot_voti);
@@ -358,8 +392,14 @@
 									</div>
 								</div>
 							</div>";
+							if($typeadmin[7] != 0)
+								echo "<button id='prova' data-toggle='modal' data-target='#exampleModal' onclick='myFunction()'></button>";
 							echo "<h2 id='title_convenction' >". $array[1] ."</h2>";
+							if($typeadmin[7] != 0)
+								echo "<button id='prova' data-toggle='modal' data-target='#exampleModal' onclick='myFunction()'></button>";
+								// echo("<img class='change mod1' src='/img/pencil.png' data-toggle='modal' data-target='#exampleModal'></img>");
 							echo  "<div>". $array[2] ."</div>";
+							
 							AbbattiConnessione($conn);
 						}
 					?>
@@ -384,6 +424,56 @@
 				</div>
 			</div>
 		</div>	
+		
+			
+		<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<form class="modal-content" action = "" method = "post">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Modifica</h5>
+					</div>
+					<div class="modal-body">
+						<textarea name="txtarea" id="text_fill">
+							<?php
+								// $pageRefreshed = isset($_SERVER['HTTP_CACHE_CONTROL']) &&($_SERVER['HTTP_CACHE_CONTROL'] === 'max-age=0' ||  $_SERVER['HTTP_CACHE_CONTROL'] == 'no-cache'); 
+								// if($pageRefreshed == 1){
+									// AbbattiConnessione($conn);	
+									// $conn = InstauraConnessione();
+									// $sql_text = "SELECT Descrizione FROM tbl_convenzioni WHERE Idconvenzione = " . $id_convenzione;
+									// $result_text = $conn->query($sql_text);
+									// $text=  mysqli_fetch_row($result_text);	
+									// echo $text[0];
+									// AbbattiConnessione($conn);	
+								// }else{
+									// $var = $html->find('img[class=change]');
+									// echo $var;
+									// switch($var){
+										
+									// }
+									// echo $text[2];
+									// AbbattiConnessione($conn);	
+								// }
+							?>	
+						</textarea>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						<input type="submit" name="change" value="Cambia" class="btn btn-primary"/>
+					</div>
+				</form>
+			</div>
+		</div>
+		
+		<?php
+			if(isset ($_POST['change'])){
+				$var = mb_ereg_replace('[\x00\x0A\x0D\x1A\x22\x27\x5C]', '\\\0', $_POST['txtarea']);		
+				// $var = $_POST['txtarea'];		
+				$conn = InstauraConnessione();
+				$sql_insert = "UPDATE tbl_convenzioni SET Descrizione = '". $var ."' WHERE IdConvenzione = " .$id_convenzione;
+				$conn->query($sql_insert);
+				AbbattiConnessione($conn);
+			}
+		?>
 		<div class="container_comments">
 			<div id="box_appear" >
 				<form action = "" method = "post">						
@@ -516,6 +606,7 @@
 	
 	
 	<script>
+		
 	var hidden = 1;
 		$(document).ready(function () {
 			$('.carousel').carousel();
@@ -524,13 +615,17 @@
 		function cancel() {
 			// var currentLocation = window.location;
 			// window.location.assign(currentLocation+"?cancel=true" );
+			
 			alert('cos');
+			$.ajax({
+				url : "yourScript.php", // the resource where youre request will go throw
+				type : "POST", // HTTP verb
+				data : { action: 'myActionToGetHits', param2 : myVar2 },
+				dataType: "json"
+			});
 		}
 		
 	</script>
-	
-
 	</body>
-	
 	
 </html>
