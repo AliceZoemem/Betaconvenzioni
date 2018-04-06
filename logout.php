@@ -1,10 +1,9 @@
 <?php
-	$cookie_name= "auth_betaconvenzioni";
-	if(isset($_COOKIE[$cookie_name])){
-		$cookie_value = $_COOKIE['auth_betaconvenzioni'];
-		setcookie ($cookie_name, cookie_value, time()-1);
-		header("Location: login.php");
-	}else
-		header("Location: login.php");
-		
+	if (isset($_COOKIE['auth_betaconvenzioni'])) {
+		unset($_COOKIE['auth_betaconvenzioni']);
+		setcookie('auth_betaconvenzioni', '', time() - 3600, '/'); // empty value and old timestamp
+	}
+
+	header("Location: login.php");
+	
 ?>
