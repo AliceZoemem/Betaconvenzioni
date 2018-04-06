@@ -1,6 +1,6 @@
 <html>
 <head>
-	<!-- <script src="http://maps.google.com/maps/api/js?sensor=false&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38"></script> -->
+
 </head>
 <body>
 </body>
@@ -10,6 +10,11 @@
 
 if(isset($_GET['function'])) {
     $function = $_GET['function'];
+    $function();
+}
+
+if(isset($_POST['function'])) {
+    $function = $_POST['function'];
     $function();
 }
 
@@ -79,10 +84,12 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
     if(isset($_GET['localita']))
         $localita = $_GET['localita'];
 
-	$query = "SELECT tbl_convenzioni.*, (SELECT sp_CalculateDistance(tbl_convenzioni.Lat, tbl_convenzioni.Lng, tbl_utenti.Lat, tbl_utenti.Lng) AS sp_CalculateDistance) AS Distanza 
-			FROM tbl_convenzioni, tbl_utenti 
-			WHERE IdUtente = $utente 
-            AND (tbl_convenzioni.DataScadenza >=  '$today' OR tbl_convenzioni.DataScadenza = '0000-00-00') ";
+    $query = 
+            "SELECT tbl_convenzioni.*, (SELECT sp_CalculateDistance(tbl_convenzioni.Lat, tbl_convenzioni.Lng, tbl_utenti.Lat, tbl_utenti.Lng) AS sp_CalculateDistance) AS Distanza, 
+            (SELECT sp_CalculateCouponScore(tbl_convenzioni.IdConvenzione) AS sp_CalculateCouponScore) AS Score 
+            FROM tbl_convenzioni, tbl_utenti 
+            WHERE IdUtente = $utente 
+            AND (tbl_convenzioni.DataScadenza >=  '$today' OR tbl_convenzioni.DataScadenza = '0000-00-00')";
 			
 	if($categoria != ""){
 		$query = $query . " AND IdCategoria = '$categoria' ";
@@ -95,18 +102,38 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
     if($localita != ""){
         $coordinates = GetCoordinates($localita);
 
-        $lat = explode("|", $coordinates)[0];
-        $lng = explode("|", $coordinates)[1];
-        
+        if($coordinates){
+            $lat = explode("|", $coordinates)[0];
+            $lng = explode("|", $coordinates)[1];
+        }
+        else{
+            $lat = 0;
+            $lng = 0;
+        }
+
 		$query = str_replace("tbl_utenti.Lat", $lat, $query);
 		$query = str_replace("tbl_utenti.Lng", $lng, $query);
     }	
     
     if($localita != ""){
-        $query = $query . " HAVING Distanza < 5";
+        $query = $query . " HAVING Distanza < 10";
     }
 
-    $query = $query . " ORDER BY Distanza ASC";
+    if(isset($_GET['order_by'])){
+        $orderBy = $_GET['order_by'];
+
+        if($orderBy == "rating")
+            $query = $query . " ORDER BY Score DESC";
+    
+        if($orderBy == "expiry")
+            $query = $query . " ORDER BY DataCreazione DESC";
+            
+        if($orderBy == "distance")
+            $query = $query . " ORDER BY Distanza ASC";
+    }
+    else {
+        $query = $query . " ORDER BY Score DESC";
+    }
 
     if ($result = mysqli_query($conn, $query)) {
     
@@ -123,6 +150,8 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
             $distanza = $row['Distanza'];
             $distanza = round($distanza, 2);
             $displayLoc = "te";
+            $score = $row["Score"];
+
             if($localita != "")
                 $displayLoc = $localita;
             
@@ -164,6 +193,9 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
 
             $res = $res . " 
                 <div class='conv-wrapper' data-conv-target='$idConvenzione'>
+                    <div class='conv-delete-bar'>
+                        <img src='img/trash.png' onclick='DeleteCoupon($idConvenzione)' />
+                    </div>
                     <div class='conv-cover' style=\"background-image: url('$url')\">
                     </div>
                     <div class='conv-content'>
@@ -190,13 +222,122 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
 	AbbattiConnessione($conn);
 }
 
+function AddCoupon(){
+    if(!isset($_POST['titolo'])){
+        echo "no_title";
+        return;
+    }
+    if(!isset($_POST['descrizione'])){
+        echo "no_description";    
+        return;
+    }
+    if(!isset($_POST['luogo'])){
+        echo "no_place";
+        return;
+    }
+    if(!isset($_POST['categoria'])){
+        echo "no_category";
+        return;        
+    }
+
+    $titolo = $_POST['titolo'];
+    $descrizione = $_POST['descrizione'];
+    $descrizione = mysql_real_escape_string($descrizione);
+    $luogo = $_POST['luogo'];
+    $categoria = $_POST['categoria'];
+    $today = date("Y-m-d");
+    $coordinates = GetCoordinates($luogo);
+
+    if($coordinates){
+        $lat = explode("|", $coordinates)[0];
+        $lng = explode("|", $coordinates)[1];
+    }
+    else{
+        $lat = 0;
+        $lng = 0;
+    }
+
+    if(isset($_POST['scadenza']))
+        $scadenza = $_POST['scadenza'];
+    else    
+        $scadenza = "0000-00-00";
+
+    $conn = InstauraConnessione();
+
+    /* check connection */
+    if (mysqli_connect_errno()) {
+        printf("Connect failed: %s\n", mysqli_connect_error());
+        exit();
+    }
+
+    $query = "INSERT INTO tbl_convenzioni (Titolo, Descrizione, Luogo, IdCategoria, Lat, Lng, DataCreazione, DataScadenza) VALUES ('$titolo', '$descrizione', '$luogo', $categoria, $lat, $lng, '$today', '$scadenza')";
+
+    if ($conn->query($query) === TRUE) {
+        $sql = "SELECT @@IDENTITY AS Id";
+
+        $q = mysqli_query($conn, $sql);
+        $row = mysqli_fetch_assoc($q);
+
+        $identity = $row['Id'];
+        echo $identity;
+
+    } else {
+        echo "Error: " . $query . "<br>" . $conn->error;
+    }
+
+    /* close connection */
+    AbbattiConnessione($conn);
+    return;
+}
+
+function AttachImages() {
+    $conn = InstauraConnessione();
+    
+    $id = $_POST['id'];
+    $res = [];
+
+    $uploaddir = '../img/convenzioni/';
+    $length = count($_FILES['FileUploader']['name']);
+    
+    for($i = 0; $i < $length; $i++) {
+        $tmpname = basename($_FILES['FileUploader']['tmp_name'][$i]);
+        $path_parts = pathinfo($tmpname);
+        
+        $filename = $path_parts['filename'];
+
+        $path_parts = pathinfo($_FILES['FileUploader']['name'][$i]);
+        $filename = $filename . "." . $path_parts['extension'];
+
+        $uploadfile = $uploaddir . $filename;
+
+        if (move_uploaded_file($_FILES['FileUploader']['tmp_name'][$i], $uploadfile)) {
+    
+            $sql = "INSERT INTO tbl_immagini (NomeFile, Ordine, IdConvenzione) VALUES ('$filename', 0, $id)";
+
+            if ($conn->query($sql) === TRUE) {
+                $res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '200'));
+            } else {
+                $res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '500'));
+            }
+
+        } else {
+            $res = array_push_assoc($res, $i, array('code' => '500', 'file' => $_FILES['FileUploader']['name'][$i]));
+        }
+    }
+
+    AbbattiConnessione($conn);
+    echo json_encode($res);
+}
+
 
 function GetCoordinates($address) { //parametri: indirizzo
     header('Content-Type: text/plain');
+    $address = str_ireplace(",", "", $address);
     $address = urlencode($address);
+
 	// google map geocode api url
-	$url = "https://maps.google.com/maps/api/geocode/json?sensor=false&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38&address=$address";
- 
+	$url = "https://maps.google.com/maps/api/geocode/json?sensor=false&language=it&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38&address=$address";
+
 	// get the json response
 	$resp_json = file_get_contents($url);
 	 
@@ -214,6 +355,16 @@ function GetCoordinates($address) { //parametri: indirizzo
 	else {
 		return false;
 	}
+}
+
+function array_push_assoc($array, $key, $value){
+    $array[$key] = $value;
+    return $array;
+}
+
+function adjust_file_name($filename){
+    $filename = preg_replace( '/[^a-z0-9]+/', '-', strtolower($filename));
+    return $filename;
 }
 
 
