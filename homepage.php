@@ -391,7 +391,6 @@ function AddCoupon() {
     var categoria = $('#ddlNewCategoria').val();
     var descrizione = tinyMCE.get('txtDescrizione').getContent();
 
-
     if(!titolo){
         $('#txtTitolo').addClass('wrong-form-control');
         var flashInterval = setInterval(function() {
@@ -442,7 +441,10 @@ function AddCoupon() {
             var ins = document.getElementById('FileUploader').files.length;
             for (var x = 0; x < ins; x++) 
                 fd.append("FileUploader[]", document.getElementById('FileUploader').files[x]);
-            
+
+            if(ins <= 0)
+                fd.append("FileUploader[]", null);
+
             fd.append("id", data);
 
             $.ajax({
