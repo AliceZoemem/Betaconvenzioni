@@ -192,11 +192,11 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
             /* END Gestione scadenza */
 
             $res = $res . " 
-                <div class='conv-wrapper' data-conv-target='$idConvenzione'>
+                <div class='conv-wrapper'>
                     <div class='conv-delete-bar'>
                         <img src='img/trash.png' onclick='DeleteCoupon($idConvenzione)' />
                     </div>
-                    <div class='conv-cover' style=\"background-image: url('$url')\">
+                    <div class='conv-cover' style=\"background-image: url('$url')\" data-conv-target='$idConvenzione'>
                     </div>
                     <div class='conv-content'>
                         <h2 class='conv-ti+tle'>$titolo</h2>
@@ -209,7 +209,6 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
                     </div>
                 </div>
             ";
-
         }
 
         /* free result set */
@@ -335,6 +334,29 @@ function AttachImages() {
         echo json_encode($res);
     }
     
+}
+
+function DeleteCoupon(){
+    if(isset($_POST['CouponId'])){
+        $conn = InstauraConnessione();
+
+        $id = $_POST['CouponId'];
+        $sql = "DELETE FROM tbl_convenzioni WHERE IdConvenzione = '$id'";
+
+        if ($conn->query($sql) === TRUE) {
+            $res = array('code' => '200', 'message' => 'success');
+            echo json_encode($res);
+        } else {
+            $res = array('code' => '500', 'message' => 'query_failed');
+            echo json_encode($res);
+        }
+
+        AbbattiConnessione($conn);
+    }
+    else{
+        $res = array('code' => '404', 'message' => 'no_coupon');
+        echo json_encode($res);
+    }
 }
 
 
