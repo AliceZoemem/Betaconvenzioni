@@ -499,7 +499,7 @@ function DeleteCoupon(id){
 
 function ConfirmDeleteCoupon() {
     var couponId = $('#btnDeleteCoupon').data('id'); 
-    
+
     if(couponId){
         console.log('I got called');
 
@@ -561,7 +561,6 @@ function getHtmlFreeResponse(data){
 
     return data;
 }
-
 
 String.prototype.replaceAll = function(str1, str2, ignore) 
 {
