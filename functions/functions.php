@@ -359,6 +359,110 @@ function DeleteCoupon(){
     }
 }
 
+function GetProfileInfo(){
+    if(isset($_GET['user'])){
+        $utente = $_GET['user'];
+        $utente = Encryption($utente, 'd');
+        
+        $conn = InstauraConnessione();
+
+        $sql = "SELECT Nome, Cognome FROM tbl_utenti WHERE IdUtente = $utente";
+        if ($result = mysqli_query($conn, $sql)) {
+            if ($row = mysqli_fetch_array($result)) {
+                $nome = $row["Nome"];
+                $cognome = $row["Cognome"];
+                
+                $res = array('nome' => $nome, 'cognome' => $cognome);
+                echo json_encode($res);
+            }
+            else{
+                $res = array('nome' => '', 'cognome' => '');
+                echo json_encode($res);
+            }
+        }
+        else{
+            $res = array('nome' => '', 'cognome' => '');
+            echo json_encode($res);
+        }
+
+        AbbattiConnessione($conn);
+    }
+    else{
+        $res = array('nome' => '', 'cognome' => '');
+        echo json_encode($res);
+    }
+}
+
+function UpdateProfileInfo(){
+    if(isset($_POST['user'])){
+        $utente = $_POST['user'];
+        $utente = Encryption($utente, 'd');
+
+        $nome = "";
+        $cognome = "";
+        $psw = "";
+        $indirizzo = "";
+
+        if(isset($_POST['nome']))
+            $nome = $_POST['nome'];
+
+        if(isset($_POST['cognome']))
+            $cognome = $_POST['cognome'];
+    
+        if(isset($_POST['psw']))
+            $psw = $_POST['psw'];
+
+        if(isset($_POST['indirizzo']))
+            $indirizzo = $_POST['indirizzo'];
+
+        $conn = InstauraConnessione();
+
+        $sql = "UPDATE tbl_utenti SET IdUtente = $utente";
+
+        if($nome != "")
+            $sql = $sql . " , Nome = '$nome' ";
+
+        if($cognome != "")
+            $sql = $sql . " , Cognome = '$cognome' ";
+            
+        if($psw != ""){
+            $psw = md5($psw);
+            $sql = $sql . " , Password = '$psw' ";
+        }
+        
+        if($indirizzo != ""){
+            $coordinates = GetCoordinates($indirizzo);
+            if($coordinates){
+                $lat = explode("|", $coordinates)[0];
+                $lng = explode("|", $coordinates)[1];
+            }
+            else{
+                $lat = 0;
+                $lng = 0;
+            }
+
+            $sql = $sql . " , Lat = '$lat', Lng = '$lng' ";
+        }
+
+        $sql = $sql . " WHERE IdUtente = $utente ";
+        
+        if ($conn->query($sql) === TRUE) {
+            $res = array('code' => '200', 'message' => 'success');
+            echo json_encode($res);
+        } 
+        else {
+            $res = array('code' => '500', 'message' => 'query_failed');
+            echo json_encode($res);
+        }
+
+        AbbattiConnessione($conn);
+    }
+    else{
+        $res = array('code' => '404', 'message' => 'no_user');
+        echo json_encode($res);
+    }
+}
+
 
 function GetCoordinates($address) { //parametri: indirizzo
     header('Content-Type: text/plain');
