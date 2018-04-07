@@ -311,6 +311,27 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="DeletePopup" tabindex="-1" role="dialog" aria-labelledby="titleLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="titleLabel">Attenzione</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Sei sicuro di voler eliminare questa convenzione?
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btnDeleteCoupon" class="btn btn-danger" onclick="ConfirmDeleteCoupon();">Elimina</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="$('#btnDeleteCoupon').data('id', '');">Annulla</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 
 $(document).ready(function (){
@@ -322,7 +343,7 @@ $(document).ready(function (){
     
     $("#conv-list").load(url, function() {
         AdjustStyle();
-        $('.conv-wrapper').click(function() {
+        $('.conv-cover').click(function() {
             var targetCoupon = $(this).data('conv-target');
             window.location = "convenzione.php?convenzione=" + targetCoupon;
         });
@@ -457,6 +478,7 @@ function AddCoupon() {
                 success: function(data) {
                     data = getHtmlFreeResponse(data);
                     console.log(JSON.parse(data));
+                    window.location.href = window.location.href;
                 }, 
                 error: function(error){
                     console.log("error", error);
@@ -468,6 +490,35 @@ function AddCoupon() {
             console.log("Error", request, error);
         }
     });
+}
+
+function DeleteCoupon(id){
+    $('#btnDeleteCoupon').data('id', id);
+    $('#DeletePopup').modal('show');
+}
+
+function ConfirmDeleteCoupon() {
+    var couponId = $('#btnDeleteCoupon').data('id'); 
+    
+    if(couponId){
+        console.log('I got called');
+
+        $.ajax({
+            url : 'functions/functions.php?function=DeleteCoupon',
+            type : 'POST',
+            data : {
+                CouponId: couponId
+            },
+            success : function(data) { 
+                data = getHtmlFreeResponse(data);
+                console.log(data);
+                window.location.href = window.location.href;
+            },
+            error : function(request, error) {
+                console.log("Error", request, error);
+            }
+        });
+    }
 }
 
 function ShowAddPopup(){
