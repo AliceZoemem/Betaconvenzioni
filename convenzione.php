@@ -218,7 +218,7 @@
 			$result_isAdmin = $conn->query($sql_isAdmin);
 			$typeadmin =  mysqli_fetch_row($result_isAdmin);
 			if($typeadmin[7] != 0){
-				echo("<img class='cancel' src='/img/trash.png' onClick=window.location.href='/cancella.php?convenzione=".$id_convenzione."' ></img>");
+				echo("<img class='cancel' src='/img/trash.png' onClick='DeleteCoupon(".$id_convenzione.")' ></img>");
 				echo "<img class='pencil' src='img/pencil.png' onclick='ShowChangePopup()'>";
 			}
 			// data-toggle='modal' data-target='#exampleModal'
@@ -298,6 +298,25 @@
 					</div>
 				</div>
 			</div>
+		</div>
+		<div class="modal fade" id="DeletePopup" tabindex="-1" role="dialog" aria-labelledby="titleLabel" aria-hidden="true">
+		  <div class="modal-dialog" role="document">
+			<div class="modal-content">
+			  <div class="modal-header">
+				<h5 class="modal-title" id="titleLabel">Attenzione</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				  <span aria-hidden="true">&times;</span>
+				</button>
+			  </div>
+			  <div class="modal-body">
+				Sei sicuro di voler eliminare questa convenzione?
+			  </div>
+			  <div class="modal-footer">
+				<button type="button" id="btnDeleteCoupon" class="btn btn-danger" onclick="ConfirmDeleteCoupon();">Elimina</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="$('#btnDeleteCoupon').data('id', '');">Annulla</button>
+			  </div>
+			</div>
+		  </div>
 		</div>
 		<div class="modal fade" id="modalChangeCoupon" tabindex="-1" role="dialog" aria-labelledby="modalAddCoupon" aria-hidden="true">
 			<div class="modal-dialog" role="document">
@@ -447,18 +466,24 @@
 		</div>
 		<script>
 		var vett_elimina = new Array();
+		
 		var x = 0;
 			function DeleteImg(i, x){
 				$('.'+i).hide();
 				vett_elimina[x] = i;
 			}
+			function DeleteCoupon(id){
+				$('#btnDeleteCoupon').data('id', id);
+				$('#DeletePopup').modal('show');
+			}
 			function ChangeCoupon() {
+				var deleted_to_send = JSON.stringify(vett_elimina);
 				var titolo = $('#id_new_titolo').val();
 				var luogo = $('#id_new_luogo').val();
 				var scadenza = $('#id_new_scadenza').val();
 				var categoria = $('#id_new_categoria').val();
 				// get content tinymce
-				var descrizione = tinyMCE.get('textarea').getContent();
+				// var descrizione = tinyMCE.get('textarea').getContent();
 
 				$.ajax({
 					url : 'functions/functions2.php?function=ChangeCoupon',
@@ -468,8 +493,8 @@
 						luogo: luogo, 
 						scadenza: scadenza, 
 						categoria: categoria, 
-						descrizione: descrizione,
-						vett_elimina: vett_elimina
+						// descrizione: descrizione,
+						vett_elimina: deleted_to_send,
 					},
 					success : function(data) { 
 						data = getHtmlFreeResponse(data);
