@@ -1,15 +1,20 @@
 <html>
 <head>
-	<!-- <script src="http://maps.google.com/maps/api/js?sensor=false&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38"></script> -->
+	
 </head>
 <body>
 </body>
 </html>
 
 <?php
-	require_once('functions/functions.php');
+	require_once('functions.php');
 	if(isset($_GET['function'])) {
 		$function = $_GET['function'];
+		$function();
+	}
+
+	if(isset($_POST['function'])) {
+		$function = $_POST['function'];
 		$function();
 	}
 	function fill_content_convenction($id_convenzione, $typeadmin){
@@ -42,7 +47,7 @@
 			$scadenza = '';
 			if( ($new_scad - $new_today)< 7 && $new_scad != '00000000'){
 				$scadenza = $new_scad;
-				echo "<p id='scadenza' class='red'> scadenza : ". $new_scad ."</p>";
+				echo "<p id='scadenza' class='red'> scadenza : ". $array[7]."</p>";
 			}else{
 				if($new_scad == '00000000'){
 					$scadenza = 'nessuna scadenza';
@@ -169,6 +174,7 @@
 			$sql_check_log = "SELECT * FROM tbl_log WHERE IdConvenzione = ".$id_convenzione. " AND IdUtente = ".$id_utente;
 			$conn = InstauraConnessione();
 			$result_check_log = $conn->query($sql_check_log);
+			
 			if ($result_check_log->num_rows > 0){
 				$info_log =  mysqli_fetch_row($result_check_log);
 				$last_visit = str_replace("-","",$info_log[3]);
@@ -192,18 +198,66 @@
 			}
 		}
 	}
-	
+	function AddImagesConvenction() {
+		echo "<script>alert('entra')</script>";
+		if(isset($_FILES['FileUploader'])){
+			$id = $_POST['id'];
+			$res = [];
+			$conn = InstauraConnessione();
+			$sql = "SELECT Ordine FROM tbl_immagini WHERE IdConvenzione = ". $id;
+			$result= $conn->query($sql);
+			$ordine = mysqli_fetch_row($result);
+			AbbattiConnessione($conn);
+			$conn = InstauraConnessione();
+			$uploaddir = '../img/convenzioni/';
+			$length = count($_FILES['FileUploader']['name']);
+			
+			for($i = 0; $i < $length; $i++) {
+				$tmpname = basename($_FILES['FileUploader']['tmp_name'][$i]);
+				$path_parts = pathinfo($tmpname);
+				
+				$filename = $path_parts['filename'];
+
+				$path_parts = pathinfo($_FILES['FileUploader']['name'][$i]);
+				$filename = $filename . "." . $path_parts['extension'];
+
+				$uploadfile = $uploaddir . $filename;
+
+				if (move_uploaded_file($_FILES['FileUploader']['tmp_name'][$i], $uploadfile)) {
+			
+			
+					$sql = "INSERT INTO tbl_immagini (NomeFile, Ordine, IdConvenzione) VALUES ('$filename', $ordine[2], $id)";
+
+					if ($conn->query($sql) === TRUE) {
+						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '200'));
+					} else {
+						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '500'));
+					}
+
+				} else {
+					$res = array_push_assoc($res, $i, array('code' => '500', 'file' => $_FILES['FileUploader']['name'][$i]));
+				}
+			}
+
+			AbbattiConnessione($conn);
+			echo json_encode($res);
+		}
+		else{
+			$res = array('code' => '404', 'file' => '', 'message' => 'no_image');
+			echo json_encode($res);
+		}
+	}
 	function ChangeCoupon(){
+		$conn = InstauraConnessione();
 		$titolo = $_POST['titolo'];
 		$descrizione = $_POST['descrizione'];
-		$descrizione = mysql_real_escape_string($descrizione);
+		$descrizione = mysqli_real_escape_string($conn, $descrizione);
 		$luogo = $_POST['luogo'];
 		$scadenza = $_POST['scadenza'];
-		$categoria = $_POST['categoria'];
-		$today = date("Y-m-d");
+		$id_categoria = $_POST['categoria'];
+		$id_convenzione = $_POST['id_convenzione'];
 		$coordinates = GetCoordinates($luogo);
 		$vett_eliminati = $_POST['vett_elimina'];
-
 		if($coordinates){
 			$lat = explode("|", $coordinates)[0];
 			$lng = explode("|", $coordinates)[1];
@@ -212,26 +266,68 @@
 			$lat = 0;
 			$lng = 0;
 		}
+
+		if (mysqli_connect_errno()) {
+			printf("Connect failed: %s\n", mysqli_connect_error());
+			exit();
+		}
+		$query = "UPDATE tbl_convenzioni SET Titolo = '". $titolo ."', Descrizione = '". $descrizione ."', Luogo = '". $luogo ."', Lat= ". $lat .", Lng=". $lng .", DataScadenza = '". $scadenza. "', IdCategoria = ". $id_categoria ." WHERE IdConvenzione = ".$id_convenzione;
+		$conn->query($query);
+		AbbattiConnessione($conn);	
 		
-		$conn = InstauraConnessione();
-		$query = "SELECT IdCategoria FROM tbl_categorie WHERE Nome = ". $categoria ;
-		$result_categoria = $conn->query($query);
-		$vettore = mysqli_fetch_row($result_categoria);
-		$id_categoria = $vettore[0];
-		echo $id_categoria;
-		AbbattiConnessione($conn);
-		// $conn = InstauraConnessione();
-
-		// /* check connection */
-		// if (mysqli_connect_errno()) {
-			// printf("Connect failed: %s\n", mysqli_connect_error());
-			// exit();
-		// }
-
-		// $query = "UPDATE tbl_categorie SET Titolo = '". $titolo ."', Descrizione = '". $descrizione ."', Luogo = '". $luogo ."', Lat= ". $lat .", Lng=". $lng .", DataScadenza =". $scadenza. ", IdCategoria = ". $id_categoria ;
-
-		// $conn->query($sql_update_log);
-		// AbbattiConnessione($conn);
-
+		foreach ($vett_eliminati as $id_eliminato){
+			$conn = InstauraConnessione();
+			$query = "DELETE FROM tbl_immagini WHERE IdImmagine = ". $id_eliminato ;
+			$conn->query($query);
+			AbbattiConnessione($conn);		
+		}		
 		return;
 	}
+	
+	function AddAttachments() {
+		if(isset($_FILES['FileUploader'])){
+			$conn = InstauraConnessione();
+			
+			$id = $_POST['id'];
+			$res = [];
+			echo 'entra';
+			$uploaddir = '../img/convenzioni/';
+			$length = count($_FILES['FileUploader']['name']);
+			
+			for($i = 0; $i < $length; $i++) {
+				$tmpname = basename($_FILES['FileUploader']['tmp_name'][$i]);
+				$path_parts = pathinfo($tmpname);
+				
+				$filename = $path_parts['filename'];
+
+				$path_parts = pathinfo($_FILES['FileUploader']['name'][$i]);
+				$filename = $filename . "." . $path_parts['extension'];
+
+				$uploadfile = $uploaddir . $filename;
+
+				if (move_uploaded_file($_FILES['FileUploader']['tmp_name'][$i], $uploadfile)) {
+			
+					$sql = "INSERT INTO tbl_immagini (NomeFile, Ordine, IdConvenzione) VALUES ('$filename', 0, $id)";
+
+					if ($conn->query($sql) === TRUE) {
+						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '200'));
+					} else {
+						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '500'));
+					}
+
+				} else {
+					$res = array_push_assoc($res, $i, array('code' => '500', 'file' => $_FILES['FileUploader']['name'][$i]));
+				}
+			}
+
+			AbbattiConnessione($conn);
+			echo json_encode($res);
+		}
+		else{
+			$res = array('code' => '404', 'file' => '', 'message' => 'no_image');
+			echo json_encode($res);
+		}
+		
+	}
+	
+	
