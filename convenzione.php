@@ -607,7 +607,8 @@
 								fd.append("FileUploader[]", null);
 
 							fd.append("id", id);
-							console.log(fd[0]);
+							
+							console.log(fd);
 							var formdata = new FormData(document.getElementById('UploadForm'));
 							var number_files = document.getElementById('FileUploader2').files.length;
 							for (var x = 0; x < number_files; x++) 
@@ -617,22 +618,22 @@
 								formdata.append("FileUploader2[]", null);
 
 							formdata.append("id", data);
-							// $.ajax({
-								// type: "POST",
-								// url: "functions/functions2.php?function=AddImagesConvenction",
-								// data: fd,             
-								// cache: false,
-								// contentType: false, //must, tell jQuery not to process the data
-								// processData: false,
-								// success: function(data) {
-									// data = getHtmlFreeResponse(data);
-									// console.log(JSON.parse(data));
-									// window.location.href = window.location.href;
-								// }, 
-								// error: function(error){
-									// console.log("error", error);
-								// }
-							// });
+							$.ajax({
+								type: "POST",
+								url: "functions/functions2.php?function=AddImagesConvenction",
+								data: fd,             
+								cache: false,
+								contentType: false, //must, tell jQuery not to process the data
+								processData: false,
+								success: function(data) {
+									data = getHtmlFreeResponse(data);
+									console.log(data);
+									window.location.href = window.location.href;
+								}, 
+								error: function(error){
+									console.log("error", error);
+								}
+							});
 							// $.ajax({
 								// type: "POST",
 								// url: "functions/functions2.php?function=AddAttachments",
