@@ -199,41 +199,33 @@
 		}
 	}
 	function AddImagesConvenction() {
-		echo "<script>alert('entra')</script>";
 		if(isset($_FILES['FileUploader'])){
 			$id = $_POST['id'];
 			$res = [];
 			$conn = InstauraConnessione();
-			$sql = "SELECT Ordine FROM tbl_immagini WHERE IdConvenzione = ". $id;
+			$sql = "SELECT MAX(Ordine) FROM tbl_immagini WHERE IdConvenzione = ". $id;
 			$result= $conn->query($sql);
 			$ordine = mysqli_fetch_row($result);
+			$ord = $ordine[0]+1;
 			AbbattiConnessione($conn);
 			$conn = InstauraConnessione();
 			$uploaddir = '../img/convenzioni/';
 			$length = count($_FILES['FileUploader']['name']);
-			
 			for($i = 0; $i < $length; $i++) {
 				$tmpname = basename($_FILES['FileUploader']['tmp_name'][$i]);
-				$path_parts = pathinfo($tmpname);
-				
+				$path_parts = pathinfo($tmpname);				
 				$filename = $path_parts['filename'];
-
 				$path_parts = pathinfo($_FILES['FileUploader']['name'][$i]);
 				$filename = $filename . "." . $path_parts['extension'];
-
 				$uploadfile = $uploaddir . $filename;
 
-				if (move_uploaded_file($_FILES['FileUploader']['tmp_name'][$i], $uploadfile)) {
-			
-			
-					$sql = "INSERT INTO tbl_immagini (NomeFile, Ordine, IdConvenzione) VALUES ('$filename', $ordine[2], $id)";
-
+				if (move_uploaded_file($_FILES['FileUploader']['tmp_name'][$i], $uploadfile)) {			
+					$sql = "INSERT INTO tbl_immagini (NomeFile, Ordine, IdConvenzione) VALUES ('$filename', $ord, $id)";
 					if ($conn->query($sql) === TRUE) {
 						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '200'));
 					} else {
 						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '500'));
 					}
-
 				} else {
 					$res = array_push_assoc($res, $i, array('code' => '500', 'file' => $_FILES['FileUploader']['name'][$i]));
 				}
@@ -257,7 +249,9 @@
 		$id_categoria = $_POST['categoria'];
 		$id_convenzione = $_POST['id_convenzione'];
 		$coordinates = GetCoordinates($luogo);
-		$vett_eliminati = $_POST['vett_elimina'];
+		if(isset($_POST['vett_elimina']))
+			$vett_eliminati = $_POST['vett_elimina'];
+			
 		if($coordinates){
 			$lat = explode("|", $coordinates)[0];
 			$lng = explode("|", $coordinates)[1];
@@ -275,11 +269,13 @@
 		$conn->query($query);
 		AbbattiConnessione($conn);	
 		
-		foreach ($vett_eliminati as $id_eliminato){
-			$conn = InstauraConnessione();
-			$query = "DELETE FROM tbl_immagini WHERE IdImmagine = ". $id_eliminato ;
-			$conn->query($query);
-			AbbattiConnessione($conn);		
+		if(isset($_POST['vett_elimina'])){
+			foreach ($vett_eliminati as $id_eliminato){
+				$conn = InstauraConnessione();
+				$query = "DELETE FROM tbl_immagini WHERE IdImmagine = ". $id_eliminato ;
+				$conn->query($query);
+				AbbattiConnessione($conn);		
+			}	
 		}		
 		return;
 	}
