@@ -3,9 +3,14 @@
 	require_once('functions/functions2.php');
 	$cookie_name = 'auth_betaconvenzioni';
 	if(isset($_COOKIE[$cookie_name])){
-		if($_GET['convenzione'])
+		if($_GET['convenzione']){
 			$id_convenzione = $_GET['convenzione'];
-		else{
+			$conn = InstauraConnessione();
+			$sql_info_testo = "SELECT * FROM tbl_convenzioni WHERE IdConvenzione = " . $id_convenzione;
+			$result_info_testo = $conn->query($sql_info_testo);
+			$array =  mysqli_fetch_row($result_info_testo);
+			AbbattiConnessione($conn);			
+		}else{
 			header("Location: homepage.php");
 		}
 	}else{
@@ -26,9 +31,18 @@
 		<script src="js/jquery.barrating.js"></script>
 		<script src="js/examples.js"></script>			
 		<script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
-		<script>tinymce.init({ selector:'textarea',width:'100%'});</script>
+		<script>tinymce.init({ selector:'#id_new_descrizione',width:'100%'});</script>
 		
 		<style>
+			.wrong-form-control{
+				border:1px solid #f00;
+			}
+			.add{
+				padding-top: 2%;
+				padding-bottom: 2%;
+				margin-left: 25%;
+				width:5%;
+			}
 			#popup{
 				text-align: center;
 				position: absolute;
@@ -96,9 +110,6 @@
 				left: 5%;
 				margin-top: 2%;
 			}
-			#contenuto_allegati{
-				left:5%;
-			}
 			ul{	
 				list-style-type: none;
 			}
@@ -128,8 +139,7 @@
 			}
 			#annulla{
 				right:25%;
-			}
-			
+			}			
 			.cancel{
 				visiblity: visible;
 				display: inline;
@@ -190,18 +200,25 @@
 			}
 			.img_change{
 				width: 60%;
+				height: 20%;
 			}
 			.trash{
 				width: 5%;
 			}
+			ul#orizontal_list{				
+				padding-top:2%;
+			}
+			ul#orizontal_list li{
+				display:inline;
+				margin-right: 7%;
+			}
 		</style>
 		<script>
+		var vett_elimina = new Array();	
 			$(document).ready(function () {
-				
 				$('.carousel').carousel();
 				$($('form')[0]).attr('action', window.location.href);	
-			});
-			
+			});			
 		</script>
 	</head>
 	<body id="all">
@@ -268,6 +285,24 @@
 							<span class="carousel-control-next-icon" aria-hidden="true"></span>
 							<span class="sr-only">Next</span>
 						</a>
+						<div class="row">
+						<div class="col-12" id="contenuto_allegati">
+							<ul id="elenco_allegati">
+								<?php
+									$conn = InstauraConnessione();
+									$sql_allegati = "SELECT * FROM tbl_allegati WHERE IdConvenzione = " . $id_convenzione;
+									$result_allegati = $conn->query($sql_allegati);
+									echo "<ul id='orizontal_list'>";
+									foreach ($result_allegati as $key => $item)
+									{
+										echo "<li><a href='img/allegati/". $item['NomeFile'] ."'>". $item['NomeFile'] ."</a></li>";								
+									}
+									echo "</ul>";
+									AbbattiConnessione($conn);
+								?>
+							</ul>
+						</div>
+					</div>
 					</div>
 				</div>
 				<div class="col-sm-6" id="contenuto_testo">
@@ -279,23 +314,7 @@
 							fill_content_convenction($id_convenzione, $typeadmin);		
 					?>
 							
-					<div class="row">
-						<div class="col-4 col-md-auto" id="contenuto_allegati">
-							<ul id="elenco_allegati">
-								<?php
-									$conn = InstauraConnessione();
-									$sql_allegati = "SELECT * FROM tbl_allegati WHERE IdConvenzione = " . $id_convenzione;
-									$result_allegati = $conn->query($sql_allegati);
-
-									foreach ($result_allegati as $key => $item)
-									{
-										echo "<li><a href='img/allegati/". $item['NomeFile'] ."'>". $item['NomeFile'] ."</a></li>";								
-									}
-									AbbattiConnessione($conn);
-								?>
-							</ul>
-						</div>
-					</div>
+					
 				</div>
 			</div>
 		</div>
@@ -325,10 +344,7 @@
 						<h5 class="modal-title" id="exampleModalLabel">Modifica convenzione</h5>
 					</div>
 					<div class="modal-body new-form">
-						<?php $conn = InstauraConnessione();
-							$sql_info_testo = "SELECT * FROM tbl_convenzioni WHERE IdConvenzione = " . $id_convenzione;
-							$result_info_testo = $conn->query($sql_info_testo);
-							$array =  mysqli_fetch_row($result_info_testo);
+						<?php 
 							
 							$anno = substr ( $array[7] , 0, 4 );
 							$mese = substr ( $array[7]  , strlen ($anno) +1, 2 );
@@ -336,18 +352,18 @@
 							$scadenza_formatted = strval ($giorno) . "/" . strval ($mese) . "/" . strval ($anno) ;
 							
 						?>
-						<input type="text" id="id_new_scadenza" name="new_scadenza" class="form-control" type="text" onblur="(this.type='text')" onfocus="(this.type='date')" placeholder="<?php echo $scadenza_formatted;?>" value="<?php echo $scadenza_formatted;?>"/>
+						<input type="text" id="id_new_scadenza" name="new_scadenza" class="form-control" type="text" onblur="(this.type='text')" onfocus="(this.type='date')" placeholder="<?php echo $scadenza_formatted;?>" value="<?php echo $array[7];?>"/>
 						<input type="text" id="id_new_luogo" name="new_luogo" class="form-control" placeholder="<?php echo $array[3];?>" value="<?php echo $array[3];?>"/>
 						<input id="id_new_titolo" name="new_titolo" type="text" class="form-control" placeholder="<?php echo $array[1];?>"  value="<?php echo $array[1];?>"> 
 						<?php
-								$conn = InstauraConnessione();
-								$query_categoria = "SELECT Nome FROM tbl_categorie INNER JOIN tbl_convenzioni ON tbl_convenzioni.IdCategoria = tbl_categorie.IdCategoria";
-								$result = mysqli_query($conn, $query_categoria);		
-								$categoria = mysqli_fetch_array($result);								
-								AbbattiConnessione($conn);								
+							$conn = InstauraConnessione();
+							$query_categoria = "SELECT * FROM tbl_categorie INNER JOIN tbl_convenzioni ON tbl_convenzioni.IdCategoria = tbl_categorie.IdCategoria";
+							$result = mysqli_query($conn, $query_categoria);		
+							$categoria = mysqli_fetch_array($result);								
+							AbbattiConnessione($conn);		
 						?>
-						<select id="id_new_categoria" name="new_categoria" class="form-control">
-							<option value=''><?php echo ($categoria['Nome']);?></option>
+						<select id="id_new_categoria" name="new_categoria" class="form-control" value="<?php echo ($categoria['Nome']);?>">
+							<option value='<?php echo ($categoria['IdCategoria']);?>'><?php echo ($categoria['Nome']);?></option>
 
 							<?php
 								$conn = InstauraConnessione();
@@ -368,13 +384,16 @@
 									}
 								}
 								AbbattiConnessione($conn);
-								?>
+							?>
 						</select>
+						<h5>Allegati</h5>
 						<?php					
 							$conn = InstauraConnessione();
-							$sql_img = "SELECT * FROM tbl_immagini WHERE IdConvenzione = " . $id_convenzione ." ORDER BY Ordine";
+							$sql_img = "SELECT * FROM tbl_allegati WHERE IdConvenzione = " . $id_convenzione ;
 							if ($result_img = mysqli_query($conn, $sql_img)) {
 								$x = 0;
+								echo "<img class='add' src='img/add.png' onClick='ShowAttachmentsUploader()'></img><br/>";
+								echo "<input type='file' id='FileUploader2' accept='image/*' class='hidden' multiple />";
 								while ($row = mysqli_fetch_array($result_img)) {
 									
 									echo "<img class='img_change ".$row['IdImmagine']."' src='img/convenzioni/". $row['NomeFile']."'></img>";	
@@ -383,12 +402,28 @@
 							}
 							AbbattiConnessione($conn);
 						?>
-						<textarea name="textarea" id="id_new_descrizione" placeholder="Descrizione" value="<?php echo $array[2];?>">
+						<h5>Immagini</h5>
+						<?php					
+							$conn = InstauraConnessione();
+							$sql_img = "SELECT * FROM tbl_immagini WHERE IdConvenzione = " . $id_convenzione ." ORDER BY Ordine";
+							if ($result_img = mysqli_query($conn, $sql_img)) {
+								$x = 0;
+								echo "<img class='add' src='img/add.png' onClick='ShowFileUploader()'></img><br/>";
+								echo "<input type='file' id='FileUploader' accept='image/*' class='hidden' multiple />";
+								while ($row = mysqli_fetch_array($result_img)) {
+									
+									echo "<img class='img_change ".$row['IdImmagine']."' src='img/convenzioni/". $row['NomeFile']."'></img>";	
+									echo "<img class='trash ".$row['IdImmagine']."' src='img/trash.png' onclick='DeleteImg(".$row['IdImmagine'].",".$x.")'></img>";	
+								}
+							}
+							AbbattiConnessione($conn);
+						?>
+						<textarea name="textarea" id="id_new_descrizione" >
 							<?php echo $array[2];?>
 						</textarea>
 					</div>
 					<div class="modal-footer">
-						<input type="button" name="change" value="Aggiungi" class="btn btn-primary" onclick="ChangeCoupon();" />
+						<input type="button" name="change" value="Modifica" class="btn btn-primary" onclick="ChangeCoupon(<?php echo ($id_convenzione);?>);" />
 						<button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
 					</div>
 				</form>
@@ -464,67 +499,168 @@
 				<div style="clear:both;"></div>
 			</div>
 		</div>
-		<script>
-		var vett_elimina = new Array();
-		
-		var x = 0;
-			function DeleteImg(i, x){
+		<script>		
+		$('#FileUploader').hide();
+		$('#FileUploader2').hide();
+			function ShowAttachmentsUploader(){
+				$('#FileUploader2').show();
+				$('#FileUploader2').addClass('form-control');
+			}
+			function ShowFileUploader(){
+				$('#FileUploader').show();
+				$('#FileUploader').addClass('form-control');				
+			}
+			function DeleteImg(i){
 				$('.'+i).hide();
-				vett_elimina[x] = i;
+				vett_elimina.push(i);
 			}
 			function DeleteCoupon(id){
 				$('#btnDeleteCoupon').data('id', id);
 				$('#DeletePopup').modal('show');
 			}
-			function ChangeCoupon() {
-				var deleted_to_send = JSON.stringify(vett_elimina);
+			function getHtmlFreeResponse(data){
+				data = data.replace(/(\r\n\t|\n|\r\t)/gm,"");
+				data = data.replaceAll(" ", "");
+				data = data.replaceAll("<html>", "");
+				data = data.replaceAll("</html>", "");
+				data = data.replaceAll("<head>", "");
+				data = data.replaceAll("</head>", "");
+				data = data.replaceAll("<body>", "");
+				data = data.replaceAll("</body>", "");
+				return data;
+			}
+			String.prototype.replaceAll = function(str1, str2, ignore) 
+			{
+				return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g,"\\$&"),(ignore?"gi":"g")),(typeof(str2)=="string")?str2.replace(/\$/g,"$$$$"):str2);
+			} 
+			function ConfirmDeleteCoupon() {
+				var couponId = $('#btnDeleteCoupon').data('id'); 
+
+				if(couponId){
+					console.log('I got called');
+
+					$.ajax({
+						url : 'functions/functions.php?function=DeleteCoupon',
+						type : 'POST',
+						data : {
+							CouponId: couponId
+						},
+						success : function(data) { 
+							data = getHtmlFreeResponse(data);
+							console.log(data);
+							window.location.href = '/homepage.php';
+						},
+						error : function(request, error) {
+							console.log("Error", request, error);
+						}
+					});
+				}
+			}
+			function ChangeCoupon(id) {				
 				var titolo = $('#id_new_titolo').val();
 				var luogo = $('#id_new_luogo').val();
 				var scadenza = $('#id_new_scadenza').val();
 				var categoria = $('#id_new_categoria').val();
-				// get content tinymce
-				// var descrizione = tinyMCE.get('textarea').getContent();
+				var descrizione = tinyMCE.get('id_new_descrizione').getContent();
+				var today = new Date();
+				var dd = today.getDate();
+				var mm = today.getMonth()+1; //January is 0!
 
-				$.ajax({
-					url : 'functions/functions2.php?function=ChangeCoupon',
-					type : 'POST',
-					data : {
-						titolo: titolo, 
-						luogo: luogo, 
-						scadenza: scadenza, 
-						categoria: categoria, 
-						// descrizione: descrizione,
-						vett_elimina: deleted_to_send,
-					},
-					success : function(data) { 
-						data = getHtmlFreeResponse(data);
-						console.log(data);
+				var yyyy = today.getFullYear();
+				if(dd<10){
+					dd='0'+dd;
+				} 
+				if(mm<10){
+					mm='0'+mm;
+				} 
+				var today =yyyy+mm+dd;
+				var confronto = scadenza.replace("-", "");
+				confronto = confronto.replace("-", "");
+				if(confronto < today){					
+					$('#id_new_scadenza').addClass('wrong-form-control');
+					var flashInterval = setInterval(function() {
+						$('#id_new_scadenza').removeClass('wrong-form-control');
+					}, 500);
+					return;
+				}else{
+					$.ajax({
+						url : 'functions/functions2.php?function=ChangeCoupon',
+						type : 'POST',
+						data : {
+							titolo: titolo, 
+							luogo: luogo, 
+							scadenza: scadenza, 
+							categoria: categoria, 
+							descrizione: descrizione,
+							vett_elimina: vett_elimina,
+							id_convenzione : id,
+						},
+						success : function(data) { 
+							data = getHtmlFreeResponse(data);
+							console.log(data);
+							var fd = new FormData(document.getElementById('UploadForm'));
+							var ins = document.getElementById('FileUploader').files.length;
+							for (var x = 0; x < ins; x++) 
+								fd.append("FileUploader[]", document.getElementById('FileUploader').files[x]);
 
-						// $.ajax({
-							// type: "POST",
-							// url: "functions/functions.php?function=AttachImages",
-							// data: fd,             
-							// cache: false,
-							// contentType: false, //must, tell jQuery not to process the data
-							// processData: false,
-							// success: function(data) {
-								// data = getHtmlFreeResponse(data);
-								// console.log(JSON.parse(data));
-							// }, 
-							// error: function(error){
-								// console.log("error", error);
-							// }
-						// });
-					},
-					error : function(request, error)
-					{
-						console.log("Error", request, error);
-					}
-				});
+							if(ins <= 0)
+								fd.append("FileUploader[]", null);
+
+							fd.append("id", id);
+							console.log(fd[0]);
+							var formdata = new FormData(document.getElementById('UploadForm'));
+							var number_files = document.getElementById('FileUploader2').files.length;
+							for (var x = 0; x < number_files; x++) 
+								formdata.append("FileUploader2[]", document.getElementById('FileUploader2').files[x]);
+
+							if(number_files <= 0)
+								formdata.append("FileUploader2[]", null);
+
+							formdata.append("id", data);
+							// $.ajax({
+								// type: "POST",
+								// url: "functions/functions2.php?function=AddImagesConvenction",
+								// data: fd,             
+								// cache: false,
+								// contentType: false, //must, tell jQuery not to process the data
+								// processData: false,
+								// success: function(data) {
+									// data = getHtmlFreeResponse(data);
+									// console.log(JSON.parse(data));
+									// window.location.href = window.location.href;
+								// }, 
+								// error: function(error){
+									// console.log("error", error);
+								// }
+							// });
+							// $.ajax({
+								// type: "POST",
+								// url: "functions/functions2.php?function=AddAttachments",
+								// data: fd,             
+								// cache: false,
+								// contentType: false, //must, tell jQuery not to process the data
+								// processData: false,
+								// success: function(data) {
+									// data = getHtmlFreeResponse(data);
+									// console.log(JSON.parse(data));
+									// window.location.href = window.location.href;
+								// }, 
+								// error: function(error){
+									// console.log("error", error);
+								// }
+							// });
+						},
+						error : function(request, error)
+						{
+							console.log("Error", request, error);
+						}
+					});
+				}
 			}
 			function ShowChangePopup(){
 				$('#modalChangeCoupon').modal('show');
 			}
+			
 		</script>
 	</body>
 	
