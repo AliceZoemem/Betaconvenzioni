@@ -69,10 +69,9 @@
 			
 			for($i=1; $i< 6; $i++){
 				if($i > $media)
-					echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-fractional'></a>";
+					echo "<a data-rating-value='".$i."' data-rating-text='".$i."' class='br-fractional'></a>";
 				else{
-					// echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
-					echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
+					echo "<a data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
 				}
 			}
 			echo "</div>
@@ -116,9 +115,9 @@
 							<div class='br-widget'>";
 				for($i=1; $i< 6; $i++){
 					if($i > $vettore_info[2])
-						echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class=''></a>";
+						echo "<a data-rating-value='".$i."' data-rating-text='".$i."' class=''></a>";
 					else
-						echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
+						echo "<a data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
 				}
 				echo"	</div>
 					</div>
@@ -131,9 +130,9 @@
 							<div class='br-widget'>";
 				for($i=1; $i< 6; $i++){
 					if($i > $vettore_info[2])
-						echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class=''></a>";
+						echo "<a data-rating-value='".$i."' data-rating-text='".$i."' class=''></a>";
 					else
-						echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
+						echo "<a data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
 				}
 				echo"	</div>
 					</div>
@@ -156,9 +155,9 @@
 							<div class='br-widget'>";
 				for($i=1; $i< 6; $i++){
 					if($i > $item['Voto'])
-						echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class=''></a>";
+						echo "<a data-rating-value='".$i."' data-rating-text='".$i."' class=''></a>";
 					else
-						echo "<a href='#' data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
+						echo "<a data-rating-value='".$i."' data-rating-text='".$i."' class='br-selected br-current'></a>";
 				}
 				echo"	</div>
 					</div>
@@ -281,38 +280,38 @@
 	}
 	
 	function AddAttachments() {
-		if(isset($_FILES['FileUploader'])){
+		if(isset($_FILES['FileUploader2'])){
 			$conn = InstauraConnessione();
 			
 			$id = $_POST['id'];
 			$res = [];
 			echo 'entra';
-			$uploaddir = '../img/convenzioni/';
-			$length = count($_FILES['FileUploader']['name']);
+			$uploaddir = '../img/allegati/';
+			$length = count($_FILES['FileUploader2']['name']);
 			
 			for($i = 0; $i < $length; $i++) {
-				$tmpname = basename($_FILES['FileUploader']['tmp_name'][$i]);
+				$tmpname = basename($_FILES['FileUploader2']['tmp_name'][$i]);
 				$path_parts = pathinfo($tmpname);
 				
 				$filename = $path_parts['filename'];
 
-				$path_parts = pathinfo($_FILES['FileUploader']['name'][$i]);
+				$path_parts = pathinfo($_FILES['FileUploader2']['name'][$i]);
 				$filename = $filename . "." . $path_parts['extension'];
 
 				$uploadfile = $uploaddir . $filename;
 
-				if (move_uploaded_file($_FILES['FileUploader']['tmp_name'][$i], $uploadfile)) {
+				if (move_uploaded_file($_FILES['FileUploader2']['tmp_name'][$i], $uploadfile)) {
 			
-					$sql = "INSERT INTO tbl_immagini (NomeFile, Ordine, IdConvenzione) VALUES ('$filename', 0, $id)";
+					$sql = "INSERT INTO tbl_allegati (NomeFile, IdConvenzione) VALUES ('$filename', $id)";
 
 					if ($conn->query($sql) === TRUE) {
-						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '200'));
+						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader2']['name'][$i], 'query' => '200'));
 					} else {
-						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader']['name'][$i], 'query' => '500'));
+						$res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['FileUploader2']['name'][$i], 'query' => '500'));
 					}
 
 				} else {
-					$res = array_push_assoc($res, $i, array('code' => '500', 'file' => $_FILES['FileUploader']['name'][$i]));
+					$res = array_push_assoc($res, $i, array('code' => '500', 'file' => $_FILES['FileUploader2']['name'][$i]));
 				}
 			}
 
