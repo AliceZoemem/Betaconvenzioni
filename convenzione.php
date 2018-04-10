@@ -210,7 +210,7 @@
 				width: 60%;
 				height: 20%;
 			}
-			.trash{
+			.delete{
 				width: 5%;
 			}
 			ul#orizontal_list{	
@@ -295,31 +295,10 @@
 							<span class="carousel-control-next-icon" aria-hidden="true"></span>
 							<span class="sr-only">Next</span>
 						</a>
-						<div class="row">
-						<div class="col-12" id="contenuto_allegati">
-							<ul id="elenco_allegati">
-								<?php
-									$conn = InstauraConnessione();
-									$sql_allegati = "SELECT * FROM tbl_allegati WHERE IdConvenzione = " . $id_convenzione;
-									$result_allegati = $conn->query($sql_allegati);
-									if ($result_allegati->num_rows > 0){
-										echo "<h5 id='allegati'> Allegati: </h5>";
-										echo "<ul id='orizontal_list'>";
-										foreach ($result_allegati as $key => $item)
-										{
-											echo "<li><a download href='img/allegati/". $item['NomeFile'] ."'>". $item['NomeFile'] ."</a></li>";								
-										}
-										echo "</ul>";
-										AbbattiConnessione($conn);
-									}
-									else
-										echo "<h5 id='allegati'> Non ci sono allegati </h5>";
-								?>
-							</ul>
-						</div>
-					</div>
+						
 					</div>
 				</div>
+				
 				<div class="col-sm-6" id="contenuto_testo">
 					<?php
 						$pageRefreshed = isset($_SERVER['HTTP_CACHE_CONTROL']) &&($_SERVER['HTTP_CACHE_CONTROL'] === 'max-age=0' ||  $_SERVER['HTTP_CACHE_CONTROL'] == 'no-cache'); 
@@ -331,6 +310,29 @@
 							
 					
 				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-12" id="contenuto_allegati">
+				<ul id="elenco_allegati">
+					<?php
+						$conn = InstauraConnessione();
+						$sql_allegati = "SELECT * FROM tbl_allegati WHERE IdConvenzione = " . $id_convenzione;
+						$result_allegati = $conn->query($sql_allegati);
+						if ($result_allegati->num_rows > 0){
+							echo "<h5 id='allegati'> Allegati: </h5>";
+							echo "<ul id='orizontal_list'>";
+							foreach ($result_allegati as $key => $item)
+							{
+								echo "<li><a download href='allegati/". $item['NomeFile'] ."'>". $item['NomeFile'] ."</a></li>";								
+							}
+							echo "</ul>";
+							AbbattiConnessione($conn);
+						}
+						else
+							echo "<h5 id='allegati'> Non ci sono allegati </h5>";
+					?>
+				</ul>
 			</div>
 		</div>
 		<div class="modal fade" id="DeletePopup" tabindex="-1" role="dialog" aria-labelledby="titleLabel" aria-hidden="true">
@@ -410,8 +412,8 @@
 								echo "<img class='add' src='img/add.png' onClick='ShowAttachmentsUploader()'></img><br/>";
 								echo "<input type='file' id='FileUploader2' accept='image/*' class='hidden' multiple />";
 								while ($row = mysqli_fetch_array($result_img)) {									
-									echo "<img class='attachments_change ".$row['IdAllegato']."' src='img/allegati/". $row['NomeFile']."'></img>";	
-									echo "<img class='trash_att ".$row['IdAllegato']."' src='img/trash.png' onclick='DeleteAttachment(".$row['IdAllegato'].")'></img>";	
+									echo "<img class='attachments_change ".$row['IdAllegato']."' src='allegati/". $row['NomeFile']."'></img>";	
+									echo "<img class='delete trash_att ".$row['IdAllegato']."' src='img/trash.png' onclick='DeleteAttachment(".$row['IdAllegato'].")'></img>";	
 								}
 							}
 							AbbattiConnessione($conn);
@@ -427,7 +429,7 @@
 								while ($row = mysqli_fetch_array($result_img)) {
 									
 									echo "<img class='img_change ".$row['IdImmagine']."' src='img/convenzioni/". $row['NomeFile']."'></img>";	
-									echo "<img class='trash_img ".$row['IdImmagine']."' src='img/trash.png' onclick='DeleteImg(".$row['IdImmagine'].",".$x.")'></img>";	
+									echo "<img class='delete trash_img ".$row['IdImmagine']."' src='img/trash.png' onclick='DeleteImg(".$row['IdImmagine'].",".$x.")'></img>";	
 								}
 							}
 							AbbattiConnessione($conn);
@@ -532,7 +534,7 @@
 			function DeleteAttachment(i){
 				$('.attachments_change.'+i).hide();
 				$('.trash_att.'+i).hide();
-				vett_elimina_attachments.push(i);
+				vett_elimina_attachments.push(i);		
 			}
 			function DeleteCoupon(id){
 				$('#btnDeleteCoupon').data('id', id);
@@ -612,7 +614,8 @@
 							scadenza: scadenza, 
 							categoria: categoria, 
 							descrizione: descrizione,
-							vett_elimina: vett_elimina_images,
+							vett_elimina_images: vett_elimina_images,
+							vett_elimina_attachments: vett_elimina_attachments,
 							id_convenzione : id,
 						},
 						success : function(data) { 
@@ -636,8 +639,7 @@
 
 							if(number_files <= 0)
 								formdata.append("FileUploader2[]", null);
-
-							formdata.append("id", data);
+							formdata.append("id", id);
 							$.ajax({
 								type: "POST",
 								url: "functions/functions2.php?function=AddImagesConvenction",
@@ -648,7 +650,6 @@
 								success: function(data) {
 									data = getHtmlFreeResponse(data);
 									console.log(data);
-									window.location.href = window.location.href;
 								}, 
 								error: function(error){
 									console.log("error", error);
@@ -664,12 +665,12 @@
 								success: function(data) {
 									data = getHtmlFreeResponse(data);
 									console.log(JSON.parse(data));
-									window.location.href = window.location.href;
 								}, 
 								error: function(error){
 									console.log("error", error);
 								}
 							});
+							window.location.href = window.location.href;
 						},
 						error : function(request, error)
 						{
