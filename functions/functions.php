@@ -344,11 +344,11 @@ function AddCoupon(){
 }
 
 function AttachImages() {
+    $res = [];
     if(isset($_FILES['FileUploader'])){
         $conn = InstauraConnessione();
         
         $id = $_POST['id'];
-        $res = [];
 
         $uploaddir = '../img/convenzioni/';
         $length = count($_FILES['FileUploader']['name']);
@@ -380,13 +380,49 @@ function AttachImages() {
         }
 
         AbbattiConnessione($conn);
-        echo json_encode($res);
     }
-    else{
-        $res = array('code' => '404', 'file' => '', 'message' => 'no_image');
-        echo json_encode($res);
+    if(isset($_FILES['Attachments'])){
+        $conn = InstauraConnessione();
+        
+        $id = $_POST['id'];
+
+        $uploaddir = '../allegati/';
+        $length = count($_FILES['Attachments']['name']);
+        
+        for($i = 0; $i < $length; $i++) {
+            $tmpname = basename($_FILES['Attachments']['tmp_name'][$i]);
+            $path_parts = pathinfo($tmpname);
+            
+            $filename = $path_parts['filename'];
+
+            $path_parts = pathinfo($_FILES['Attachments']['name'][$i]);
+            $filename = $filename . "." . $path_parts['extension'];
+
+            $uploadfile = $uploaddir . $filename;
+
+            if (move_uploaded_file($_FILES['Attachments']['tmp_name'][$i], $uploadfile)) {
+        
+                $sql = "INSERT INTO tbl_allegati (NomeFile, IdConvenzione) VALUES ('$filename', $id)";
+
+                if ($conn->query($sql) === TRUE) {
+                    $res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['Attachments']['name'][$i], 'query' => '200'));
+                } else {
+                    $res = array_push_assoc($res, $i, array('code' => '200', 'file' => $_FILES['Attachments']['name'][$i], 'query' => '500'));
+                }
+
+            } else {
+                $res = array_push_assoc($res, $i, array('code' => '500', 'file' => $_FILES['Attachments']['name'][$i]));
+            }
+        }
+
+        AbbattiConnessione($conn);
     }
-    
+
+    if(!(isset($_FILES['Attachments'])) && !(isset($_FILES['FileUploader']))){
+        $res = array('code' => '404', 'file' => '', 'message' => 'no_files');
+    }
+
+    echo json_encode($res);
 }
 
 function DeleteCoupon(){
@@ -408,6 +444,79 @@ function DeleteCoupon(){
     }
     else{
         $res = array('code' => '404', 'message' => 'no_coupon');
+        echo json_encode($res);
+    }
+}
+
+function AddCategory(){
+    if(isset($_POST['Categoria'])){
+        $conn = InstauraConnessione();
+
+        $categoria = $_POST['Categoria'];
+        $sql = "INSERT INTO tbl_categorie (Nome) VALUES ('$categoria') ";
+
+        if ($conn->query($sql) === TRUE) {
+            $res = array('code' => '200', 'message' => 'success');
+            echo json_encode($res);
+        } else {
+            $res = array('code' => '500', 'message' => 'query_failed');
+            echo json_encode($res);
+        }
+
+        AbbattiConnessione($conn);
+    }
+    else{
+        $res = array('code' => '404', 'message' => 'no_category');
+        echo json_encode($res);
+    }
+}
+
+
+function EditCategory(){
+    if(isset($_POST['Categoria']) && isset($_POST['Id'])){
+        $conn = InstauraConnessione();
+
+        $id = $_POST['Id'];
+        $nome = $_POST['Categoria'];
+        
+        $sql = "UPDATE tbl_categorie SET Nome = '$nome' WHERE IdCategoria = $id ";
+
+        if ($conn->query($sql) === TRUE) {
+            $res = array('code' => '200', 'message' => 'success');
+            echo json_encode($res);
+        } else {
+            $res = array('code' => '500', 'message' => 'query_failed');
+            echo json_encode($res);
+        }
+
+        AbbattiConnessione($conn);
+    }
+    else{
+        $res = array('code' => '404', 'message' => 'no_category');
+        echo json_encode($res);
+    }
+}
+
+
+function DeleteCategory(){
+    if(isset($_POST['Categoria'])){
+        $conn = InstauraConnessione();
+
+        $categoria = $_POST['Categoria'];
+        $sql = "DELETE FROM tbl_categorie WHERE IdCategoria = $categoria ";
+
+        if ($conn->query($sql) === TRUE) {
+            $res = array('code' => '200', 'message' => 'success');
+            echo json_encode($res);
+        } else {
+            $res = array('code' => '500', 'message' => 'query_failed');
+            echo json_encode($res);
+        }
+
+        AbbattiConnessione($conn);
+    }
+    else{
+        $res = array('code' => '404', 'message' => 'no_category');
         echo json_encode($res);
     }
 }
@@ -507,7 +616,7 @@ function UpdateProfileInfo(){
             $indirizzo = $_POST['indirizzo'];
             
         if(isset($_POST['regione']))
-        $regione = $_POST['regione'];
+            $regione = $_POST['regione'];
 
         $conn = InstauraConnessione();
 
@@ -559,6 +668,129 @@ function UpdateProfileInfo(){
         $res = array('code' => '404', 'message' => 'no_user');
         echo json_encode($res);
     }
+}
+
+function SignUp(){
+    $nome = "";
+    $cognome = "";
+    $email = "";
+    $psw = "";
+    $indirizzo = "";
+    $regione = "";
+
+    if(isset($_POST['nome']))
+        $nome = $_POST['nome'];
+
+    if(isset($_POST['cognome']))
+        $cognome = $_POST['cognome'];
+
+    if(isset($_POST['email']))
+        $email = $_POST['email'];
+    
+    if(isset($_POST['psw']))
+        $psw = $_POST['psw'];
+
+    if(isset($_POST['indirizzo']))
+        $indirizzo = $_POST['indirizzo'];
+
+        
+    if(isset($_POST['regione']))
+        $regione = $_POST['regione'];
+        
+    if($nome == ""){
+        $res = array('code' => '404', 'message' => 'no_name');
+        echo json_encode($res);
+        return;
+    }
+
+    if($cognome == ""){
+        $res = array('code' => '404', 'message' => 'no_surname');
+        echo json_encode($res);
+        return;
+    }
+
+    if($email == ""){
+        $res = array('code' => '404', 'message' => 'no_email');
+        echo json_encode($res);
+        return;
+    }
+
+    if($psw == ""){
+        $res = array('code' => '404', 'message' => 'no_psw');
+        echo json_encode($res);
+        return;
+    }
+
+    if($indirizzo == ""){
+        $res = array('code' => '404', 'message' => 'no_address');
+        echo json_encode($res);
+        return;
+    }
+
+    if($regione == ""){
+        $res = array('code' => '404', 'message' => 'no_region');
+        echo json_encode($res);
+        return;
+    }
+
+    //Ottengo coordinate
+    $coordinates = GetCoordinates($indirizzo);
+    $lat = 0;
+    $lng = 0;
+    if($coordinates){
+        $lat = explode("|", $coordinates)[0];
+        $lng = explode("|", $coordinates)[1];
+    }
+    
+    //Cripto Psw
+    $psw = md5($psw);
+        
+    //Controllo email format
+    $pattern = '/^(?!(?:(?:\\x22?\\x5C[\\x00-\\x7E]\\x22?)|(?:\\x22?[^\\x5C\\x22]\\x22?)){255,})(?!(?:(?:\\x22?\\x5C[\\x00-\\x7E]\\x22?)|(?:\\x22?[^\\x5C\\x22]\\x22?)){65,}@)(?:(?:[\\x21\\x23-\\x27\\x2A\\x2B\\x2D\\x2F-\\x39\\x3D\\x3F\\x5E-\\x7E]+)|(?:\\x22(?:[\\x01-\\x08\\x0B\\x0C\\x0E-\\x1F\\x21\\x23-\\x5B\\x5D-\\x7F]|(?:\\x5C[\\x00-\\x7F]))*\\x22))(?:\\.(?:(?:[\\x21\\x23-\\x27\\x2A\\x2B\\x2D\\x2F-\\x39\\x3D\\x3F\\x5E-\\x7E]+)|(?:\\x22(?:[\\x01-\\x08\\x0B\\x0C\\x0E-\\x1F\\x21\\x23-\\x5B\\x5D-\\x7F]|(?:\\x5C[\\x00-\\x7F]))*\\x22)))*@(?:(?:(?!.*[^.]{64,})(?:(?:(?:xn--)?[a-z0-9]+(?:-+[a-z0-9]+)*\\.){1,126}){1,}(?:(?:[a-z][a-z0-9]*)|(?:(?:xn--)[a-z0-9]+))(?:-+[a-z0-9]+)*)|(?:\\[(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){7})|(?:(?!(?:.*[a-f0-9][:\\]]){7,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,5})?)))|(?:(?:IPv6:(?:(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){5}:)|(?:(?!(?:.*[a-f0-9]:){5,})(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3})?::(?:[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,3}:)?)))?(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))(?:\\.(?:(?:25[0-5])|(?:2[0-4][0-9])|(?:1[0-9]{2})|(?:[1-9]?[0-9]))){3}))\\]))$/iD';
+    if (!(preg_match($pattern, $email) === 1)) {
+        $res = array('code' => '500', 'message' => 'invalid_email');
+        echo json_encode($res);
+        return;
+    }
+
+
+    $conn = InstauraConnessione();
+    
+    //Controllo email redundance
+    $sql = "SELECT IdUtente FROM tbl_utenti WHERE Email = '$email' ";
+    if ($result = mysqli_query($conn, $sql)) {
+        if ($row = mysqli_fetch_array($result)) {
+            $res = array('code' => '409', 'message' => 'email_exists');
+            echo json_encode($res);
+            return;
+        }
+    }
+
+    //Inserimento
+    $sql = "INSERT INTO tbl_utenti (Nome, Cognome, Email, Password, Lat, Lng, IdRegione, IsAmministratore, Attivo) VALUES ('$nome', '$cognome', '$email', '$psw', $lat, $lng, $regione, 0, 1)";
+
+    if ($conn->query($sql) === TRUE) {
+        $res = array('code' => '200', 'message' => 'success');
+        echo json_encode($res);
+    } 
+    else {
+        $res = array('code' => '500', 'message' => 'query_error');
+        echo json_encode($res);
+    }
+
+
+    $sql = "SELECT IdUtente FROM tbl_utenti WHERE Email = '$email'";
+
+    $q = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($q);
+
+    $id = $row['IdUtente'];
+        
+    $cookie_value = Encryption($id, 'e');
+    $cookie_name = 'auth_betaconvenzioni';
+    setcookie ($cookie_name, $cookie_value, time() + (86400 * 30), '/');
+
+    AbbattiConnessione($conn);
 }
 
 
