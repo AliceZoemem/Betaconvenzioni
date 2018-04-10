@@ -51,8 +51,6 @@ function Encryption($string, $action = 'e' ) { //parametri: string (stringa da c
     return $output;
 }
 
-
-
 function LoadList() { //Parametri da query string: categoria (?), cerca (?), utente (!)
 	if(!(isset($_GET['utente']))){
 		return;
@@ -85,12 +83,33 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
         $localita = $_GET['localita'];
 
     $query = 
-            "SELECT tbl_convenzioni.*, (SELECT sp_CalculateDistance(tbl_convenzioni.Lat, tbl_convenzioni.Lng, tbl_utenti.Lat, tbl_utenti.Lng) AS sp_CalculateDistance) AS Distanza, 
-            (SELECT sp_CalculateCouponScore(tbl_convenzioni.IdConvenzione) AS sp_CalculateCouponScore) AS Score 
-            FROM tbl_convenzioni, tbl_utenti 
-            WHERE IdUtente = $utente 
-            AND (tbl_convenzioni.DataScadenza >=  '$today' OR tbl_convenzioni.DataScadenza = '0000-00-00')";
-			
+        // "SELECT tbl_convenzioni.*, tbl_indirizzi.Luogo AS CnvLuogo, tbl_indirizzi.Lat AS CnvLat, tbl_indirizzi.Lng AS CnvLng, (SELECT sp_CalculateDistance(tbl_indirizzi.Lat, tbl_indirizzi.Lng, tbl_utenti.Lat, tbl_utenti.Lng) AS sp_CalculateDistance) AS Distanza, 
+        // (SELECT sp_CalculateCouponScore(tbl_convenzioni.IdConvenzione) AS sp_CalculateCouponScore) AS Score 
+        // FROM tbl_convenzioni, tbl_utenti, tbl_indirizzi
+        // WHERE IdUtente = $utente 
+        // AND tbl_convenzioni.IdConvenzione IN (SELECT IdConvenzione FROM tbl_indirizzi WHERE tbl_indirizzi.IdRegione = tbl_utenti.IdRegione)
+        // AND (tbl_convenzioni.DataScadenza >=  '$today' OR tbl_convenzioni.DataScadenza = '0000-00-00')";
+
+        "SELECT tbl_convenzioni.*, 
+		(
+            CASE 
+         		WHEN tbl_indirizzi.Luogo = '[ovunque]' && tbl_indirizzi.Lat = 0 && tbl_indirizzi.Lng = 0 THEN 0 
+         		ELSE
+                (SELECT sp_CalculateDistance(
+                    tbl_indirizzi.Lat, 
+                    tbl_indirizzi.Lng, 
+                    (SELECT tbl_utenti.Lat FROM tbl_utenti WHERE tbl_utenti.IdUtente = $utente), 
+                    (SELECT tbl_utenti.Lng FROM tbl_utenti WHERE tbl_utenti.IdUtente = $utente)
+                )
+            )
+            END
+        ) AS Distanza,  
+        (SELECT sp_CalculateCouponScore(tbl_convenzioni.IdConvenzione) AS sp_CalculateCouponScore) AS Score, 
+        tbl_indirizzi.Lat AS CnvLat, tbl_indirizzi.Lng AS CnvLng, tbl_indirizzi.Luogo AS CnvLuogo  
+        FROM tbl_convenzioni
+        INNER JOIN tbl_indirizzi ON tbl_indirizzi.IdConvenzione = tbl_convenzioni.IdConvenzione
+        WHERE tbl_indirizzi.IdRegione = (SELECT IdRegione FROM tbl_utenti WHERE tbl_utenti.IdUtente = $utente) ";
+        
 	if($categoria != ""){
 		$query = $query . " AND IdCategoria = '$categoria' ";
 	}	
@@ -151,10 +170,19 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
             $distanza = round($distanza, 2);
             $displayLoc = "te";
             $score = $row["Score"];
+           
+            $luogo = $row['CnvLuogo'];
+            $lat = $row['CnvLat'];
+            $lng = $row['CnvLng'];
 
-            if($localita != "")
-                $displayLoc = $localita;
+            if($luogo != "")
+                $displayLoc = $luogo;
             
+            $finalPlace = "A <b>$distanza km</b> da $displayLoc";
+
+            if($luogo == "[ovunque]" && $lat == 0 && $lng == 0)
+                $finalPlace = "Tutte le sedi";
+
             /* Percorso immagine */
 
             $q = mysqli_query($conn, "SELECT NomeFile FROM tbl_immagini WHERE IdConvenzione = $idConvenzione ORDER BY Ordine ASC LIMIT 1");
@@ -177,7 +205,7 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
             
             /* Nome Categoria */
 
-            $q = mysqli_query($conn, "SELECT Nome FROM tbl_categorie WHERE IdCategoria = $idConvenzione LIMIT 1");
+            $q = mysqli_query($conn, "SELECT Nome FROM tbl_categorie WHERE IdCategoria = $idCategoria LIMIT 1");
             $row = mysqli_fetch_assoc($q);
             $NomeCategoria = $row["Nome"];
 
@@ -191,16 +219,17 @@ function LoadList() { //Parametri da query string: categoria (?), cerca (?), ute
                 $scadenza = date("d/m/Y", strtotime($scadenza));
             /* END Gestione scadenza */
 
+           
             $res = $res . " 
                 <div class='conv-wrapper'>
                     <div class='conv-delete-bar'>
-                        <img src='img/trash.png' onclick='DeleteCoupon($idConvenzione)' />
+                        <img src='img/trash.png' class='btn-delete-coupon' onclick='DeleteCoupon($idConvenzione)' />
                     </div>
                     <div class='conv-cover' style=\"background-image: url('$url')\" data-conv-target='$idConvenzione'>
                     </div>
                     <div class='conv-content'>
                         <h2 class='conv-ti+tle'>$titolo</h2>
-                        <i>A <b>$distanza km</b> da $displayLoc</i><br><br>
+                        <i>$finalPlace</i><br><br>
                         <b class='conv-category'>$NomeCategoria</b><br/>
                         <i class='conv-expiration'>Scadenza: $scadenza</i>
                         <div class='conv-description'>
@@ -232,31 +261,22 @@ function AddCoupon(){
         echo "no_description";    
         return;
     }
-    if(!isset($_POST['luogo'])){
-        echo "no_place";
-        return;
-    }
     if(!isset($_POST['categoria'])){
         echo "no_category";
         return;        
     }
 
+    if(!isset($_POST['indirizzi'])){
+        echo "no_addresses";
+        return; 
+    }
+
     $titolo = $_POST['titolo'];
     $descrizione = $_POST['descrizione'];
     $descrizione = mysqli_real_escape_string($conn, $descrizione);
-    $luogo = $_POST['luogo'];
     $categoria = $_POST['categoria'];
     $today = date("Y-m-d");
-    $coordinates = GetCoordinates($luogo);
-
-    if($coordinates){
-        $lat = explode("|", $coordinates)[0];
-        $lng = explode("|", $coordinates)[1];
-    }
-    else{
-        $lat = 0;
-        $lng = 0;
-    }
+    $indirizzi = $_POST['indirizzi'];
 
     if(isset($_POST['scadenza']))
         $scadenza = $_POST['scadenza'];
@@ -270,7 +290,7 @@ function AddCoupon(){
         exit();
     }
 
-    $query = "INSERT INTO tbl_convenzioni (Titolo, Descrizione, Luogo, IdCategoria, Lat, Lng, DataCreazione, DataScadenza) VALUES ('$titolo', '$descrizione', '$luogo', $categoria, $lat, $lng, '$today', '$scadenza')";
+    $query = "INSERT INTO tbl_convenzioni (Titolo, Descrizione, IdCategoria, DataCreazione, DataScadenza) VALUES ('$titolo', '$descrizione', $categoria, '$today', '$scadenza')";
 
     if ($conn->query($query) === TRUE) {
         $sql = "SELECT @@IDENTITY AS Id";
@@ -279,9 +299,42 @@ function AddCoupon(){
         $row = mysqli_fetch_assoc($q);
 
         $identity = $row['Id'];
-        echo $identity;
 
-    } else {
+        $sql = "INSERT INTO tbl_indirizzi (IdRegione, IdConvenzione, Luogo, Lat, Lng) VALUES ";
+        $valuesSql = "";
+        $count = 0;
+        foreach ($indirizzi as $key => $value) {
+            $regione = $value['regione'];
+            $luogo = $value['indirizzo'];
+            if($luogo != ""){
+                $count++;
+                $coordinates = GetCoordinates($luogo);
+                $lat = 0;
+                $lng = 0;
+                if($coordinates){
+                    $lat = explode("|", $coordinates)[0];
+                    $lng = explode("|", $coordinates)[1];
+                }
+                if($valuesSql == "")
+                    $valuesSql = $valuesSql . " ($regione, $identity, '$luogo', $lat, $lng)";  
+                else    
+                    $valuesSql = $valuesSql . ", ($regione, $identity, '$luogo', $lat, $lng)";            
+            }
+        }
+
+        if($count > 0){
+            $sql = $sql . $valuesSql;
+            if ($conn->query($sql) === TRUE) {
+                //Okay.
+            }
+            else {
+                echo "Error: " . $query . "<br>" . $conn->error;
+            }
+        }
+
+        echo $identity;
+    }
+    else {
         echo "Error: " . $query . "<br>" . $conn->error;
     }
 
@@ -359,6 +412,42 @@ function DeleteCoupon(){
     }
 }
 
+function GetUserType() {
+    if(isset($_GET['user'])){
+        $utente = $_GET['user'];
+        $utente = Encryption($utente, 'd');
+
+        
+        $conn = InstauraConnessione();
+        
+        $sql = "SELECT IsAmministratore FROM tbl_utenti WHERE IdUtente = $utente";
+
+        if ($result = mysqli_query($conn, $sql)) {
+            if ($row = mysqli_fetch_array($result)) {
+                $admin = $row["IsAmministratore"];
+                $adminBool = $admin == 1 ? true : false;
+                $res = array('admin' => $adminBool);
+                echo json_encode($res);
+            }
+            else{
+                $res = array('admin' => false);
+                echo json_encode($res);
+            }
+        }
+        else{
+            $res = array('admin' => false);
+            echo json_encode($res);
+        }
+
+        AbbattiConnessione($conn);
+    }
+    else{
+        $res = array('admin' => false);
+        echo json_encode($res);
+    }
+}
+
+
 function GetProfileInfo(){
     if(isset($_GET['user'])){
         $utente = $_GET['user'];
@@ -366,29 +455,30 @@ function GetProfileInfo(){
         
         $conn = InstauraConnessione();
 
-        $sql = "SELECT Nome, Cognome FROM tbl_utenti WHERE IdUtente = $utente";
+        $sql = "SELECT Nome, Cognome, IdRegione FROM tbl_utenti WHERE IdUtente = $utente";
         if ($result = mysqli_query($conn, $sql)) {
             if ($row = mysqli_fetch_array($result)) {
                 $nome = $row["Nome"];
                 $cognome = $row["Cognome"];
+                $regione = $row["IdRegione"];
                 
-                $res = array('nome' => $nome, 'cognome' => $cognome);
+                $res = array('nome' => $nome, 'cognome' => $cognome, 'regione' => $regione);
                 echo json_encode($res);
             }
             else{
-                $res = array('nome' => '', 'cognome' => '');
+                $res = array('nome' => '', 'cognome' => '', 'regione' => '');
                 echo json_encode($res);
             }
         }
         else{
-            $res = array('nome' => '', 'cognome' => '');
+            $res = array('nome' => '', 'cognome' => '', 'regione' => '');
             echo json_encode($res);
         }
 
         AbbattiConnessione($conn);
     }
     else{
-        $res = array('nome' => '', 'cognome' => '');
+        $res = array('nome' => '', 'cognome' => '', 'regione' => '');
         echo json_encode($res);
     }
 }
@@ -402,6 +492,7 @@ function UpdateProfileInfo(){
         $cognome = "";
         $psw = "";
         $indirizzo = "";
+        $regione = "";
 
         if(isset($_POST['nome']))
             $nome = $_POST['nome'];
@@ -414,6 +505,9 @@ function UpdateProfileInfo(){
 
         if(isset($_POST['indirizzo']))
             $indirizzo = $_POST['indirizzo'];
+            
+        if(isset($_POST['regione']))
+        $regione = $_POST['regione'];
 
         $conn = InstauraConnessione();
 
@@ -443,6 +537,10 @@ function UpdateProfileInfo(){
 
             $sql = $sql . " , Lat = '$lat', Lng = '$lng' ";
         }
+
+        if($regione != "")
+            $sql = $sql . " , IdRegione = '$regione' ";
+      
 
         $sql = $sql . " WHERE IdUtente = $utente ";
         
