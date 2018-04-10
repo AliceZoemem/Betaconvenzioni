@@ -35,12 +35,17 @@
 			$lon = $typeadmin[6];
 			$lat = $typeadmin[5];
 			$conn = InstauraConnessione();
-			$sql_distanza = "SELECT sp_calculatedistance(".$array[4].",".$array[5].",".$lat.",".$lon.") AS Distanza";
+			
+			$sql_utente = "SELECT * FROM tbl_indirizzi WHERE IdRegione = ". $typeadmin[5] ." AND IdConvenzione = ".$id_convenzione;
+			$result = $conn->query($sql_utente);
+			$luogo =  mysqli_fetch_row($result);	
+			echo "<p> Luogo : ". $luogo[3] ."</p>";
+			
+			$sql_distanza = "SELECT sp_calculatedistance(".$luogo[4].",".$luogo[5].",".$lat.",".$lon.") AS Distanza";
 			$result_distanza = $conn->query($sql_distanza);
 			$dis =  mysqli_fetch_row($result_distanza);
 			echo "Distanza : ".round($dis[0], 1) ." km";
-			 
-			echo "<p> Luogo : ". $array[3] ."</p>";
+			
 			$today = date("Y-m-d"); 
 			$new_scad = str_replace("-","",$array[7]);
 			$new_today = str_replace("-","",$today);
