@@ -195,6 +195,10 @@
 				visibility: visible;
 				background-color:red;
 			}
+			.address{
+				display: inline-block;
+				width:70%;
+			}
 			.form-control{
 				display: inline-block;
 			}
@@ -203,8 +207,8 @@
 				width: 80%;
 			}
 			.img_change{
-				width: 60%;
-				height: 20%;
+				max-width: 60%;
+				max-height: 20%;
 			}
 			.attachments_change{
 				width: 60%;
@@ -221,9 +225,11 @@
 				display:inline;
 				margin-right: 7%;
 			}
+			
 		</style>
 		<script>
-		var vett_elimina_attachments = new Array();	
+		var indirizzi = new Array();
+ 		var vett_elimina_attachments = new Array();	
 		var vett_elimina_images = new Array();	
 			$(document).ready(function () {
 				$('.carousel').carousel();
@@ -237,7 +243,7 @@
 			$id_utente = Encryption($id_utente, 'd');
 			manage_log($id_convenzione, $id_utente);
 		?>
-		<img class='back' src='/img/back.png' onclick="window.location.href='/homepage.php'"> </img>
+		<img class='back' src='/img/back.png' onclick="window.location.href='/betaconvenzioni.php'"> </img>
 		<button type="button" class="btn btn-secondary right logout" onclick="window.location.href='/logout.php'">Logout</button>
 		<?php 
 			$conn = InstauraConnessione();
@@ -370,7 +376,34 @@
 							
 						?>
 						<input type="text" id="id_new_scadenza" name="new_scadenza" class="form-control" type="text" onblur="(this.type='text')" onfocus="(this.type='date')" placeholder="<?php echo $scadenza_formatted;?>" value="<?php echo $array[7];?>"/>
-						<input type="text" id="id_new_luogo" name="new_luogo" class="form-control" placeholder="<?php echo $array[3];?>" value="<?php echo $array[3];?>"/>
+						<!--<input type="text" id="id_new_luogo" name="new_luogo" class="form-control" placeholder="echo $array[3]" value=" $array[3];"/>-->
+						<?php
+							$conn = InstauraConnessione();
+							
+							/* check connection */
+							if (mysqli_connect_errno()) {
+								printf("Connect failed: %s\n", mysqli_connect_error());
+								exit();
+							}
+							
+							$query = "SELECT * FROM tbl_regioni ORDER BY Nome ASC";
+							
+							if ($result = mysqli_query($conn, $query)) {
+								
+								/* fetch associative array */
+								while ($row = mysqli_fetch_array($result)) {
+									$idRegione = $row['Id'];
+									$nome = $row['Nome'];
+									
+									echo "
+									<input type='text' class='form-control location address' data-region='$idRegione' placeholder='Indirizzo $nome' id='address$idRegione' />
+									<label><input type='checkbox' class='check-everywhere' data-region='$idRegione' />Ovunque</label>";
+								}
+							}
+							
+							/* close connection */
+							AbbattiConnessione($conn);
+						?>
 						<input id="id_new_titolo" name="new_titolo" type="text" class="form-control" placeholder="<?php echo $array[1];?>"  value="<?php echo $array[1];?>"> 
 						<?php
 							$conn = InstauraConnessione();
@@ -518,6 +551,29 @@
 		<script>		
 		$('#FileUploader').hide();
 		$('#FileUploader2').hide();
+			$(document).ready(function (){		
+				// $('.form-control.location.address').each(function () {
+					// var id = $($(this)[0]).attr('id');
+					// var input = document.getElementById(id);
+					// console.log(input);
+					// var autocomplete = new google.maps.places.Autocomplete(input);
+				// });
+			});
+			$('.check-everywhere').click(function (){
+				var checked = $(this).is(":checked");
+				if(checked){
+					var region = $(this).data('region');
+					var txt = $('input[type=text][data-region="' + region + '"]')[0];
+					$(txt).val('[ovunque]');
+					$(txt).attr('disabled', 'disabled');
+				}
+				else{
+					var region = $(this).data('region');
+					var txt = $('input[type=text][data-region="' + region + '"]')[0];
+					$(txt).val('');
+					$(txt).removeAttr('disabled');
+				}
+			});
 			function ShowAttachmentsUploader(){
 				$('#FileUploader2').show();
 				$('#FileUploader2').addClass('form-control');
@@ -578,9 +634,14 @@
 					});
 				}
 			}
-			function ChangeCoupon(id) {				
+			function ChangeCoupon(id) {		
+				$('.form-control.location.address').each(function() {
+					var regione = $(this).data('region');
+					var indirizzo = $(this).val();
+					var record = { 'regione': regione, 'indirizzo': indirizzo};
+					indirizzi.push(record);
+				});			
 				var titolo = $('#id_new_titolo').val();
-				var luogo = $('#id_new_luogo').val();
 				var scadenza = $('#id_new_scadenza').val();
 				var categoria = $('#id_new_categoria').val();
 				var descrizione = tinyMCE.get('id_new_descrizione').getContent();
@@ -610,7 +671,7 @@
 						type : 'POST',
 						data : {
 							titolo: titolo, 
-							luogo: luogo, 
+							indirizzi: indirizzi, 
 							scadenza: scadenza, 
 							categoria: categoria, 
 							descrizione: descrizione,
@@ -670,7 +731,7 @@
 									console.log("error", error);
 								}
 							});
-							window.location.href = window.location.href;
+							// window.location.href = window.location.href;
 						},
 						error : function(request, error)
 						{
