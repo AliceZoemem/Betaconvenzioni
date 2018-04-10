@@ -34,6 +34,10 @@
 		<script>tinymce.init({ selector:'#id_new_descrizione',width:'100%'});</script>
 		
 		<style>
+			#allegati{
+				margin-top:2%;
+				display:inline-block;
+			}
 			.wrong-form-control{
 				border:1px solid #f00;
 			}
@@ -202,10 +206,15 @@
 				width: 60%;
 				height: 20%;
 			}
+			.attachments_change{
+				width: 60%;
+				height: 20%;
+			}
 			.trash{
 				width: 5%;
 			}
-			ul#orizontal_list{				
+			ul#orizontal_list{	
+				display: inline-block;
 				padding-top:2%;
 			}
 			ul#orizontal_list li{
@@ -214,7 +223,8 @@
 			}
 		</style>
 		<script>
-		var vett_elimina = new Array();	
+		var vett_elimina_attachments = new Array();	
+		var vett_elimina_images = new Array();	
 			$(document).ready(function () {
 				$('.carousel').carousel();
 				$($('form')[0]).attr('action', window.location.href);	
@@ -292,13 +302,18 @@
 									$conn = InstauraConnessione();
 									$sql_allegati = "SELECT * FROM tbl_allegati WHERE IdConvenzione = " . $id_convenzione;
 									$result_allegati = $conn->query($sql_allegati);
-									echo "<ul id='orizontal_list'>";
-									foreach ($result_allegati as $key => $item)
-									{
-										echo "<li><a href='img/allegati/". $item['NomeFile'] ."'>". $item['NomeFile'] ."</a></li>";								
+									if ($result_allegati->num_rows > 0){
+										echo "<h5 id='allegati'> Allegati: </h5>";
+										echo "<ul id='orizontal_list'>";
+										foreach ($result_allegati as $key => $item)
+										{
+											echo "<li><a download href='img/allegati/". $item['NomeFile'] ."'>". $item['NomeFile'] ."</a></li>";								
+										}
+										echo "</ul>";
+										AbbattiConnessione($conn);
 									}
-									echo "</ul>";
-									AbbattiConnessione($conn);
+									else
+										echo "<h5 id='allegati'> Non ci sono allegati </h5>";
 								?>
 							</ul>
 						</div>
@@ -394,10 +409,9 @@
 								$x = 0;
 								echo "<img class='add' src='img/add.png' onClick='ShowAttachmentsUploader()'></img><br/>";
 								echo "<input type='file' id='FileUploader2' accept='image/*' class='hidden' multiple />";
-								while ($row = mysqli_fetch_array($result_img)) {
-									
-									echo "<img class='img_change ".$row['IdImmagine']."' src='img/convenzioni/". $row['NomeFile']."'></img>";	
-									echo "<img class='trash ".$row['IdImmagine']."' src='img/trash.png' onclick='DeleteImg(".$row['IdImmagine'].",".$x.")'></img>";	
+								while ($row = mysqli_fetch_array($result_img)) {									
+									echo "<img class='attachments_change ".$row['IdAllegato']."' src='img/allegati/". $row['NomeFile']."'></img>";	
+									echo "<img class='trash_att ".$row['IdAllegato']."' src='img/trash.png' onclick='DeleteAttachment(".$row['IdAllegato'].")'></img>";	
 								}
 							}
 							AbbattiConnessione($conn);
@@ -413,7 +427,7 @@
 								while ($row = mysqli_fetch_array($result_img)) {
 									
 									echo "<img class='img_change ".$row['IdImmagine']."' src='img/convenzioni/". $row['NomeFile']."'></img>";	
-									echo "<img class='trash ".$row['IdImmagine']."' src='img/trash.png' onclick='DeleteImg(".$row['IdImmagine'].",".$x.")'></img>";	
+									echo "<img class='trash_img ".$row['IdImmagine']."' src='img/trash.png' onclick='DeleteImg(".$row['IdImmagine'].",".$x.")'></img>";	
 								}
 							}
 							AbbattiConnessione($conn);
@@ -511,8 +525,14 @@
 				$('#FileUploader').addClass('form-control');				
 			}
 			function DeleteImg(i){
-				$('.'+i).hide();
-				vett_elimina.push(i);
+				$('.img_change.'+i).hide();
+				$('.trash_img.'+i).hide();
+				vett_elimina_images.push(i);
+			}
+			function DeleteAttachment(i){
+				$('.attachments_change.'+i).hide();
+				$('.trash_att.'+i).hide();
+				vett_elimina_attachments.push(i);
 			}
 			function DeleteCoupon(id){
 				$('#btnDeleteCoupon').data('id', id);
@@ -592,7 +612,7 @@
 							scadenza: scadenza, 
 							categoria: categoria, 
 							descrizione: descrizione,
-							vett_elimina: vett_elimina,
+							vett_elimina: vett_elimina_images,
 							id_convenzione : id,
 						},
 						success : function(data) { 
@@ -634,22 +654,22 @@
 									console.log("error", error);
 								}
 							});
-							// $.ajax({
-								// type: "POST",
-								// url: "functions/functions2.php?function=AddAttachments",
-								// data: fd,             
-								// cache: false,
-								// contentType: false, //must, tell jQuery not to process the data
-								// processData: false,
-								// success: function(data) {
-									// data = getHtmlFreeResponse(data);
-									// console.log(JSON.parse(data));
-									// window.location.href = window.location.href;
-								// }, 
-								// error: function(error){
-									// console.log("error", error);
-								// }
-							// });
+							$.ajax({
+								type: "POST",
+								url: "functions/functions2.php?function=AddAttachments",
+								data: formdata,             
+								cache: false,
+								contentType: false, //must, tell jQuery not to process the data
+								processData: false,
+								success: function(data) {
+									data = getHtmlFreeResponse(data);
+									console.log(JSON.parse(data));
+									window.location.href = window.location.href;
+								}, 
+								error: function(error){
+									console.log("error", error);
+								}
+							});
 						},
 						error : function(request, error)
 						{
