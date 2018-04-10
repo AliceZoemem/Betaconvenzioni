@@ -248,9 +248,10 @@
 		$id_categoria = $_POST['categoria'];
 		$id_convenzione = $_POST['id_convenzione'];
 		$coordinates = GetCoordinates($luogo);
-		if(isset($_POST['vett_elimina']))
-			$vett_eliminati = $_POST['vett_elimina'];
-			
+		if(isset($_POST['vett_elimina_images']))
+			$vett_eliminati_img = $_POST['vett_elimina_images'];
+		if(isset($_POST['vett_elimina_attachments']))
+			$vett_eliminati_att = $_POST['vett_elimina_attachments'];
 		if($coordinates){
 			$lat = explode("|", $coordinates)[0];
 			$lng = explode("|", $coordinates)[1];
@@ -268,14 +269,22 @@
 		$conn->query($query);
 		AbbattiConnessione($conn);	
 		
-		if(isset($_POST['vett_elimina'])){
-			foreach ($vett_eliminati as $id_eliminato){
+		if(isset($_POST['vett_elimina_images'])){
+			foreach ($vett_eliminati_img as $id_eliminato_img){
 				$conn = InstauraConnessione();
-				$query = "DELETE FROM tbl_immagini WHERE IdImmagine = ". $id_eliminato ;
+				$query = "DELETE FROM tbl_immagini WHERE IdImmagine = ". $id_eliminato_img ;
 				$conn->query($query);
 				AbbattiConnessione($conn);		
 			}	
-		}		
+		}	
+		if(isset($_POST['vett_elimina_attachments'])){
+			foreach ($vett_eliminati_att as $id_eliminato_att){
+				$conn = InstauraConnessione();
+				$query = "DELETE FROM tbl_allegati WHERE IdAllegato = ". $id_eliminato_att ;
+				$conn->query($query);
+				AbbattiConnessione($conn);		
+			}	
+		}			
 		return;
 	}
 	
@@ -286,7 +295,7 @@
 			$id = $_POST['id'];
 			$res = [];
 			echo 'entra';
-			$uploaddir = '../img/allegati/';
+			$uploaddir = '../allegati/';
 			$length = count($_FILES['FileUploader2']['name']);
 			
 			for($i = 0; $i < $length; $i++) {
