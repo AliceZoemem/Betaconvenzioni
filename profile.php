@@ -5,172 +5,6 @@
 	}
 ?>
 
-<html>
-<head>
-
-<meta charset="UTF-8">
-<script src="js/jquery-3.3.1.min.js"></script> 
-<script src="js/bootstrap.min.js"></script> 
-<link rel="stylesheet" href="css/bootstrap.min.css" />
-<script src="https://maps.googleapis.com/maps/api/js?libraries=places&language=it&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38"></script>
-<script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
-
-
-<style>
-
-    .filters-bar{
-        width:100%;
-        height:50px;
-        padding:25px 0;
-        margin:0;
-        display:inline-block;
-        text-align:center;
-    }
-
-    .filters-controls{
-        width:60%;
-        display:inline-block;
-    }
-
-    .filters-controls select, .filters-bar input[type='text']{
-        padding:5px 7px;
-        border-radius:3px;
-        border:1px solid #555;
-        width:31%;
-        max-width:100%;
-    }
-
-    .filter-buttons{
-        width:58%;
-        text-align:right;
-        display:inline-block;
-        padding-right:2%;
-        padding-top:20px;
-    }
-
-    .conv-list{
-        width:80%;
-        height:100%;
-        text-align:center;
-        padding:0 10%;
-    }
-
-    .conv-wrapper{
-        width:90%;
-        min-height:30%;
-        height:auto;
-        margin-bottom:20px;
-        padding:50px;
-        transition:0.2s;
-    }
-
-    .conv-wrapper:hover{
-        background-color:#ddd;
-        cursor:pointer;
-    }
-
-    .conv-cover{
-        background-position-x:center;   
-        background-position-y:center;
-        background-size:cover;   
-        background-repeat:no-repeat;
-        width:20%;
-        padding-top:20%;
-        display:inline-block;
-        position:relative;
-        left:0;
-        margin:0;
-        padding-bottom:0;
-        padding-left:0;
-        padding-right:0;
-        border:1px solid #333;
-    }
-
-    .conv-content{
-        width:60%;
-        display:inline-block;
-        padding:0;
-        vertical-align:top;
-        text-align:left;
-        overflow-y:hidden;
-        max-height:100%;
-        padding-left:1%;
-    }
-
-    .conv-expiration{
-        color:#555;
-    }
-
-    .conv-description{
-        padding-top:20px;
-    }
-	
-	.right{
-		float:right;
-		margin: 1% 7%;
-	}
-
-    .add-bar{
-        width:100%;
-        text-align:center;
-        display:block;
-        height:30px;
-    }
-
-    .add-bar img{
-        max-height:100%;
-        -webkit-transition: 0.2s;
-        -moz-transition: 0.2s;
-        transition: 0.2s;
-    }
-
-    .add-bar img:hover{
-        cursor:pointer;
-        -ms-transform: scale(1.1); /* IE 9 */
-        -webkit-transform: scale(1.1); /* Safari */
-        transform: scale(1.1);
-    }
-
-    .mce-notification-inner, #mceu_31{
-        display:none;
-    }
-
-    .new-form .form-control{
-        margin-bottom:5px;
-    }
-
-    .wrong-form-control{
-        border:1px solid #f00;
-    }
-
-    .conv-delete-bar{
-        width:100%;
-        height:40px;
-        text-align:right;
-        padding-top:10px;
-    }
-
-    .conv-delete-bar img{
-        display:inline-block;
-        max-height:100%;
-        transition:0.2s;
-    }
-
-    .conv-delete-bar img:hover{
-        cursor:pointer;
-        -ms-transform: scale(1.1); /* IE 9 */
-        -webkit-transform: scale(1.1); /* Safari */
-        transform: scale(1.1);
-    }
-
-</style>
-
-</head>
-<body>
-
-<h1 style="display:inline">Profilo</h1>
-    <button type="button" class="right" onclick="window.location.href='logout.php'">Logout</button>
-
     <div class="form-wrapper" style="width:60%;margin-left:20%;">
         Nome<br/>
         <input type="text" id="txtNome" class="form-control" />
@@ -181,6 +15,35 @@
         Password<br/>
         <input type="password" id="txtPsw" class="form-control" />
         <br/>      
+        Regione<br />
+        <select id="ddlRegione" class="form-control">
+            <?php
+                $conn = InstauraConnessione();
+                
+                /* check connection */
+                if (mysqli_connect_errno()) {
+                    printf("Connect failed: %s\n", mysqli_connect_error());
+                    exit();
+                }
+                
+                $query = "SELECT * FROM tbl_regioni ORDER BY Nome ASC";
+                
+                if ($result = mysqli_query($conn, $query)) {
+                    
+                    /* fetch associative array */
+                    while ($row = mysqli_fetch_array($result)) {
+                        $idRegione = $row['Id'];
+                        $nome = $row['Nome'];
+                        
+                        echo "<option value=$idRegione>$nome</option>";
+                    }
+                }
+                
+                /* close connection */
+                AbbattiConnessione($conn);
+            ?>
+        </select>
+        <br/>
         Indirizzo<br/>  
         <input type="text" id="txtIndirizzo" class="form-control" />
         <br/><br/>
@@ -248,6 +111,7 @@ function GetProfileInfo(){
 
             $("#txtNome").val(data.nome);
             $("#txtCognome").val(data.cognome);
+            $("#ddlRegione").val(data.regione);
         },
         error : function(request, error)
         {
@@ -270,6 +134,7 @@ function ConfirmEdit(){
     var cognome = $('#txtCognome').val();
     var psw = $('#txtPsw').val();
     var indirizzo = $('#txtIndirizzo').val();
+    var regione = $('#ddlRegione').val();
     var utente = getCookie('auth_betaconvenzioni');
 
     $.ajax({
@@ -280,6 +145,7 @@ function ConfirmEdit(){
             cognome: cognome, 
             psw: psw, 
             indirizzo: indirizzo, 
+            regione: regione, 
             user: utente
         },
         success : function(data) { 
@@ -443,7 +309,3 @@ String.prototype.replaceAll = function(str1, str2, ignore)
 } 
 
 </script>
-
-
-</body>
-</html>

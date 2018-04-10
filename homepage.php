@@ -5,44 +5,24 @@
 	}
 ?>
 
-<html>
-<head>
-
-<meta charset="UTF-8">
-<script src="js/jquery-3.3.1.min.js"></script> 
-<script src="js/bootstrap.min.js"></script> 
-<link rel="stylesheet" href="css/bootstrap.min.css" />
-<script src="https://maps.googleapis.com/maps/api/js?libraries=places&language=it&key=AIzaSyAJcEn33O5ntSQ8p-tJ3n7Ies5L9-0HO38"></script>
-<script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
-<script>tinymce.init({ selector:'#txtDescrizione' });</script>
-
-
 <style>
 
     .filters-bar{
         width:100%;
-        height:50px;
         padding:25px 0;
         margin:0;
         display:inline-block;
         text-align:center;
     }
 
-    .filters-controls{
-        width:60%;
+    .filters-controls .form-control{
+        max-width:20%;
         display:inline-block;
-    }
-
-    .filters-controls select, .filters-bar input[type='text']{
-        padding:5px 7px;
-        border-radius:3px;
-        border:1px solid #555;
-        width:31%;
-        max-width:100%;
+        margin-bottom:3px;
     }
 
     .filter-buttons{
-        width:58%;
+        width:85%;
         text-align:right;
         display:inline-block;
         padding-right:2%;
@@ -50,7 +30,6 @@
     }
 
     .conv-list{
-        width:80%;
         height:100%;
         text-align:center;
         padding:0 10%;
@@ -61,13 +40,12 @@
         min-height:30%;
         height:auto;
         margin-bottom:20px;
-        padding:50px;
         transition:0.2s;
+        padding: 30px;
     }
 
     .conv-wrapper:hover{
-        background-color:#ddd;
-        cursor:pointer;
+        background-color:#eee;
     }
 
     .conv-cover{
@@ -164,24 +142,38 @@
         transform: scale(1.1);
     }
 
+    .form-control.location.address{
+        width:70%;
+        display:inline-block;
+    }
+
+    .pac-container {
+        background-color: #FFF;
+        z-index: 50;
+        position: fixed;
+        display: inline-block;
+    }
+
+    .modal{
+        z-index: 20;   
+    }
+
+    .modal-backdrop{
+        z-index:0;
+    }
+
 </style>
-
-</head>
-<body>
-
-<h1 style="display:inline">Convenzioni</h1>
-<button type="button" class="right" onclick="window.location.href='logout.php'">Logout</button>
     <div class="add-bar">
-        <img src="img/add.png" onclick="ShowAddPopup();" />
+        <img src="img/add.png" onclick="ShowAddPopup();" id="btnAddCoupon" />
     </div>
 
 <div class='filters-bar'>
     <form method='get' id="MainForm" action='homepage.php'>
     
         <div class='filters-controls'>
-            <input type='text' id='txtLocalita' name='localita' placeholder='Località...' />
+            <input type='text' id='txtLocalita' name='localita' class="form-control" placeholder='Località...' />
 
-            <select id='ddlCategoria' name='categoria' >
+            <select id='ddlCategoria' name='categoria' class="form-control" >
                 <option value=''>Categoria...</option>
 
                 <?php
@@ -211,9 +203,9 @@
                 ?>
             </select>
 
-            <input type='text' id='txtRicerca' name='cerca' placeholder='Cerca...' />
+            <input type='text' id='txtRicerca' name='cerca' placeholder='Cerca...' class="form-control" />
 
-            <select name="order_by" id="ddlOrder">
+            <select name="order_by" id="ddlOrder" class="form-control">
                 <option disabled value="">Ordina per...</option>
                 <option value="rating" selected>Più popolari</option>
                 <option value="expiry">Più recenti</option>
@@ -223,8 +215,8 @@
         </div>
 
         <div class='filter-buttons'>
-            <input type='submit' id='btnCerca' value='Cerca' onclick="Cerca();" />
-            <input type='submit' id='btnRimuoviFiltri' value='Rimuovi filtri' onclick="RimuoviFiltri();" />
+            <input type='submit' id='btnCerca' value='Cerca' onclick="Cerca();" class="btn btn-primary" />
+            <input type='submit' id='btnRimuoviFiltri' value='Rimuovi filtri' onclick="RimuoviFiltri();" class="btn btn-secondary" />
         </div>
     </form>
 	
@@ -268,7 +260,33 @@
             </div>
             <div class="modal-body new-form">
                 <input type="text" id="txtTitolo" name="newtitolo" class="form-control" placeholder="Titolo" />
-                <input type="text" id="txtLuogo" name="newluogo" class="form-control" placeholder="Luogo" />
+                <?php
+                    $conn = InstauraConnessione();
+                    
+                    /* check connection */
+                    if (mysqli_connect_errno()) {
+                        printf("Connect failed: %s\n", mysqli_connect_error());
+                        exit();
+                    }
+                    
+                    $query = "SELECT * FROM tbl_regioni ORDER BY Nome ASC";
+                    
+                    if ($result = mysqli_query($conn, $query)) {
+                        
+                        /* fetch associative array */
+                        while ($row = mysqli_fetch_array($result)) {
+                            $idRegione = $row['Id'];
+                            $nome = $row['Nome'];
+                            
+                            echo "
+                            <input type='text' class='form-control location address' data-region='$idRegione' placeholder='Indirizzo $nome' id='address$idRegione' />
+                            <label><input type='checkbox' class='check-everywhere' data-region='$idRegione' />Ovunque</label>";
+                        }
+                    }
+                    
+                    /* close connection */
+                    AbbattiConnessione($conn);
+                ?>
                 <input id="txtScadenza" name="newscadenza" class="form-control" type="text" placeholder="Scadenza" onblur="(this.type='text')" onfocus="(this.type='date')"  > 
                 <select id="ddlNewCategoria" name="newcategoria" class="form-control">
                     <option value=''>Categoria...</option>
@@ -338,6 +356,13 @@ $(document).ready(function (){
     var input = document.getElementById('txtLocalita');
     var autocomplete = new google.maps.places.Autocomplete(input);
 
+    $('.form-control.location.address').each(function () {
+        var id = $($(this)[0]).attr('id');
+        var input = document.getElementById(id);
+        console.log(input);
+        var autocomplete = new google.maps.places.Autocomplete(input);
+    });
+
     var utente = getCookie('auth_betaconvenzioni');
     var url = "functions/functions.php?function=LoadList&utente=" + utente;
     
@@ -346,6 +371,45 @@ $(document).ready(function (){
         $('.conv-cover').click(function() {
             var targetCoupon = $(this).data('conv-target');
             window.location = "convenzione.php?convenzione=" + targetCoupon;
+        });
+
+        $('.check-everywhere').click(function (){
+            var checked = $(this).is(":checked");
+            if(checked){
+                var region = $(this).data('region');
+                var txt = $('input[type=text][data-region="' + region + '"]')[0];
+                $(txt).val('[ovunque]');
+                $(txt).attr('disabled', 'disabled');
+            }
+            else{
+                var region = $(this).data('region');
+                var txt = $('input[type=text][data-region="' + region + '"]')[0];
+                $(txt).val('');
+                $(txt).removeAttr('disabled');
+            }
+        });
+
+        $.ajax({
+            url : 'functions/functions.php?function=GetUserType',
+            type : 'GET',
+            data : {
+                user: utente
+            },
+            success : function(data) { 
+                data = getHtmlFreeResponse(data);
+                data = JSON.parse(data);
+                console.log(data);
+
+                if(data.admin != 1){
+                    $('#btnAddCoupon').remove();
+                    $('.btn-delete-coupon').each(function () {
+                        $(this).remove();
+                    });
+                }
+            },
+            error : function(request, error) {
+                console.log("Error", request, error);
+            }
         });
     });
 });
@@ -407,7 +471,6 @@ function RimuoviFiltri(){
 
 function AddCoupon() {
     var titolo = $('#txtTitolo').val();
-    var luogo = $('#txtLuogo').val();
     var scadenza = $('#txtScadenza').val();
     var categoria = $('#ddlNewCategoria').val();
     var descrizione = tinyMCE.get('txtDescrizione').getContent();
@@ -416,14 +479,6 @@ function AddCoupon() {
         $('#txtTitolo').addClass('wrong-form-control');
         var flashInterval = setInterval(function() {
             $('#txtTitolo').removeClass('wrong-form-control');
-        }, 500);
-        return;
-    }
-
-    if(!luogo){
-        $('#txtLuogo').addClass('wrong-form-control');
-        var flashInterval = setInterval(function() {
-            $('#txtLuogo').removeClass('wrong-form-control');
         }, 500);
         return;
     }
@@ -444,15 +499,24 @@ function AddCoupon() {
         return;
     }
 
+    var indirizzi = [];
+
+    $('.form-control.location.address').each(function() {
+        var regione = $(this).data('region');
+        var indirizzo = $(this).val();
+        var record = { 'regione': regione, 'indirizzo': indirizzo};
+        indirizzi.push(record);
+    });
+
     $.ajax({
         url : 'functions/functions.php?function=AddCoupon',
         type : 'POST',
         data : {
             titolo: titolo, 
-            luogo: luogo, 
             scadenza: scadenza, 
             categoria: categoria, 
-            descrizione: descrizione
+            descrizione: descrizione, 
+            indirizzi: indirizzi
         },
         success : function(data) { 
             data = getHtmlFreeResponse(data);
@@ -569,6 +633,3 @@ String.prototype.replaceAll = function(str1, str2, ignore)
 
 </script>
 
-
-</body>
-</html>
