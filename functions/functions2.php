@@ -243,32 +243,51 @@
 		$titolo = $_POST['titolo'];
 		$descrizione = $_POST['descrizione'];
 		$descrizione = mysqli_real_escape_string($conn, $descrizione);
-		$luogo = $_POST['luogo'];
+		$indirizzi = $_POST['indirizzi'];
 		$scadenza = $_POST['scadenza'];
 		$id_categoria = $_POST['categoria'];
 		$id_convenzione = $_POST['id_convenzione'];
-		$coordinates = GetCoordinates($luogo);
 		if(isset($_POST['vett_elimina_images']))
 			$vett_eliminati_img = $_POST['vett_elimina_images'];
 		if(isset($_POST['vett_elimina_attachments']))
 			$vett_eliminati_att = $_POST['vett_elimina_attachments'];
-		if($coordinates){
-			$lat = explode("|", $coordinates)[0];
-			$lng = explode("|", $coordinates)[1];
-		}
-		else{
-			$lat = 0;
-			$lng = 0;
-		}
-
 		if (mysqli_connect_errno()) {
 			printf("Connect failed: %s\n", mysqli_connect_error());
 			exit();
 		}
-		$query = "UPDATE tbl_convenzioni SET Titolo = '". $titolo ."', Descrizione = '". $descrizione ."', Luogo = '". $luogo ."', Lat= ". $lat .", Lng=". $lng .", DataScadenza = '". $scadenza. "', IdCategoria = ". $id_categoria ." WHERE IdConvenzione = ".$id_convenzione;
+		$query = "UPDATE tbl_convenzioni SET Titolo = '". $titolo ."', Descrizione = '". $descrizione ."', DataScadenza = '". $scadenza. "', IdCategoria = ". $id_categoria ." WHERE IdConvenzione = ".$id_convenzione;
 		$conn->query($query);
 		AbbattiConnessione($conn);	
-		
+		$conn = InstauraConnessione();
+		if ($conn->query($query) === TRUE) {
+			$sql = "DELETE FROM tbl_indirizzi WHERE IdConvenzione = ".$id_convenzione;
+			$conn->query($sql);
+			AbbattiConnessione($conn);	
+			$conn = InstauraConnessione();
+			$sql = "INSERT INTO tbl_indirizzi (IdRegione, IdConvenzione, Luogo, Lat, Lng) VALUES ";
+			foreach ($indirizzi as $key => $value) {
+				$regione = $value['regione'];
+				$luogo = $value['indirizzo'];
+				
+				if($luogo != ""){
+					// $conn = InstauraConnessione();
+					$coordinates = GetCoordinates($luogo);
+					$lat = 0;
+					$lng = 0;
+					if($coordinates){
+						$lat = explode("|", $coordinates)[0];
+						$lng = explode("|", $coordinates)[1];
+					}
+					$valuesSql = $sql . " ($regione, $id_convenzione, '$luogo', $lat, $lng)";
+					echo "<script>console.log('$valuesSql')</script>";
+					$conn->query($valuesSql);
+				}
+			}
+		}
+		else {
+			echo "Error: " . $query . "<br>" . $conn->error;
+		}
+
 		if(isset($_POST['vett_elimina_images'])){
 			foreach ($vett_eliminati_img as $id_eliminato_img){
 				$conn = InstauraConnessione();
