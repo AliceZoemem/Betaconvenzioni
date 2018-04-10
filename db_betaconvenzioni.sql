@@ -1,13 +1,15 @@
 -- phpMyAdmin SQL Dump
--- version 4.5.1
--- http://www.phpmyadmin.net
+-- version 4.7.9
+-- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 09, 2018 at 10:40 PM
--- Server version: 10.1.16-MariaDB
--- PHP Version: 5.5.38
+-- Creato il: Apr 10, 2018 alle 11:31
+-- Versione del server: 10.1.31-MariaDB
+-- Versione PHP: 5.6.34
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
 SET time_zone = "+00:00";
 
 
@@ -22,7 +24,7 @@ SET time_zone = "+00:00";
 
 DELIMITER $$
 --
--- Procedures
+-- Procedure
 --
 CREATE DEFINER=`root`@`localhost` PROCEDURE `vw_ListaConvenzioni` (IN `Utente` INT)  NO SQL
 SELECT tbl_convenzioni.*, (SELECT sp_CalculateDistance(tbl_convenzioni.Lat, tbl_convenzioni.Lng, tbl_utenti.Lat, tbl_utenti.Lng) AS sp_CalculateDistance) AS Distanza 
@@ -31,7 +33,7 @@ WHERE IdUtente = Utente
 ORDER BY Distanza ASC$$
 
 --
--- Functions
+-- Funzioni
 --
 CREATE DEFINER=`root`@`localhost` FUNCTION `sp_CalculateCouponScore` (`idCoupon` INT) RETURNS FLOAT NO SQL
     DETERMINISTIC
@@ -60,7 +62,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_allegati`
+-- Struttura della tabella `tbl_allegati`
 --
 
 CREATE TABLE `tbl_allegati` (
@@ -69,10 +71,22 @@ CREATE TABLE `tbl_allegati` (
   `IdConvenzione` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dump dei dati per la tabella `tbl_allegati`
+--
+
+INSERT INTO `tbl_allegati` (`IdAllegato`, `NomeFile`, `IdConvenzione`) VALUES
+(1, 'php23E6.pdf', 148),
+(2, 'php23E7.pdf', 148),
+(3, 'phpAFD2.pdf', 149),
+(4, 'phpAFE3.pdf', 149),
+(5, 'php7E03.pdf', 150),
+(6, 'php3F3E.png', 151);
+
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_categorie`
+-- Struttura della tabella `tbl_categorie`
 --
 
 CREATE TABLE `tbl_categorie` (
@@ -81,7 +95,7 @@ CREATE TABLE `tbl_categorie` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `tbl_categorie`
+-- Dump dei dati per la tabella `tbl_categorie`
 --
 
 INSERT INTO `tbl_categorie` (`IdCategoria`, `Nome`) VALUES
@@ -91,7 +105,7 @@ INSERT INTO `tbl_categorie` (`IdCategoria`, `Nome`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_convenzioni`
+-- Struttura della tabella `tbl_convenzioni`
 --
 
 CREATE TABLE `tbl_convenzioni` (
@@ -107,18 +121,19 @@ CREATE TABLE `tbl_convenzioni` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `tbl_convenzioni`
+-- Dump dei dati per la tabella `tbl_convenzioni`
 --
 
 INSERT INTO `tbl_convenzioni` (`IdConvenzione`, `Titolo`, `Descrizione`, `Luogo`, `Lat`, `Lng`, `DataCreazione`, `DataScadenza`, `IdCategoria`) VALUES
 (1, 'Convenzione 1', '<h1>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohpaaaaaa</p>', 'Torino', 45.1501, 7.12555, '2018-01-26', '0000-00-00', 1),
-(2, 'Convenzione 2', '<h1 style=''#f00''>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 'Via Roma 10, Torino', 45.0705, 7.68455, '2018-01-08', '2018-05-23', 2),
-(146, 'Nuova convenzione', '<p><strong>Ayeeeee</strong></p>', '', 0, 0, '2018-04-09', '2018-04-25', 2);
+(2, 'Convenzione 2', '<h1 style=\'#f00\'>Lorem ipsum dolor sit amet, consectetur adipiscing elit</h1>\r\n<p>aghoshdsohdfohdfspihsdfpohp</p>', 'Via Roma 10, Torino', 45.0705, 7.68455, '2018-01-08', '2018-05-23', 2),
+(151, 'aaa', '<p>aA&lt;AS</p>', '', 0, 0, '2018-04-10', '0000-00-00', 2),
+(153, 'aa', '<p>sdsfsdfsdf</p>', '', 0, 0, '2018-04-10', '2018-04-25', 2);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_feedback`
+-- Struttura della tabella `tbl_feedback`
 --
 
 CREATE TABLE `tbl_feedback` (
@@ -129,7 +144,7 @@ CREATE TABLE `tbl_feedback` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `tbl_feedback`
+-- Dump dei dati per la tabella `tbl_feedback`
 --
 
 INSERT INTO `tbl_feedback` (`IdUtente`, `IdConvenzione`, `Voto`, `Commento`) VALUES
@@ -138,7 +153,7 @@ INSERT INTO `tbl_feedback` (`IdUtente`, `IdConvenzione`, `Voto`, `Commento`) VAL
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_immagini`
+-- Struttura della tabella `tbl_immagini`
 --
 
 CREATE TABLE `tbl_immagini` (
@@ -149,7 +164,7 @@ CREATE TABLE `tbl_immagini` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `tbl_immagini`
+-- Dump dei dati per la tabella `tbl_immagini`
 --
 
 INSERT INTO `tbl_immagini` (`IdImmagine`, `NomeFile`, `Ordine`, `IdConvenzione`) VALUES
@@ -160,12 +175,21 @@ INSERT INTO `tbl_immagini` (`IdImmagine`, `NomeFile`, `Ordine`, `IdConvenzione`)
 (22, 'phpEF50.jpg', 0, 145),
 (23, 'php7B7B.png', 0, 146),
 (24, 'php7B7C.png', 0, 146),
-(25, 'php7B7D.png', 0, 146);
+(25, 'php7B7D.png', 0, 146),
+(26, 'php7E01.jpg', 0, 150),
+(27, 'php7E02.jpg', 0, 150),
+(28, 'php3F3C.jpg', 0, 151),
+(29, 'php3F3D.jpg', 0, 151),
+(30, 'php973A.jpg', 0, 152),
+(31, 'php78F1.jpg', 0, 153),
+(32, 'php78F2.jpg', 0, 153),
+(33, 'php78F3.jpg', 0, 153),
+(34, 'php78F4.jpg', 0, 153);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_indirizzi`
+-- Struttura della tabella `tbl_indirizzi`
 --
 
 CREATE TABLE `tbl_indirizzi` (
@@ -178,7 +202,7 @@ CREATE TABLE `tbl_indirizzi` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `tbl_indirizzi`
+-- Dump dei dati per la tabella `tbl_indirizzi`
 --
 
 INSERT INTO `tbl_indirizzi` (`IdIndirizzo`, `IdRegione`, `IdConvenzione`, `Luogo`, `Lat`, `Lng`) VALUES
@@ -193,12 +217,33 @@ INSERT INTO `tbl_indirizzi` (`IdIndirizzo`, `IdRegione`, `IdConvenzione`, `Luogo
 (17, 3, 145, 'AAAAAAA', 36.1586, -115.234),
 (18, 2, 146, 'Via Roma, Segrate, Milano, Italia', 45.4926, 9.29333),
 (19, 1, 146, 'Via Nizza, Torino, TO, Italia', 45.0396, 7.67029),
-(20, 3, 146, '[ovunque]', 0, 0);
+(20, 3, 146, '[ovunque]', 0, 0),
+(21, 2, 147, 'Australia', -25.2744, 133.775),
+(22, 1, 147, 'Austin, Texas, Stati Uniti', 30.2672, -97.7431),
+(23, 3, 147, '[ovunque]', 0, 0),
+(24, 2, 148, 'Australia', -25.2744, 133.775),
+(25, 1, 148, 'Austin, Texas, Stati Uniti', 30.2672, -97.7431),
+(26, 3, 148, '[ovunque]', 0, 0),
+(27, 2, 149, 'Amsterdam, Paesi Bassi', 52.3702, 4.89517),
+(28, 1, 149, 'Austin, Texas, Stati Uniti', 30.2672, -97.7431),
+(29, 3, 149, '[ovunque]', 0, 0),
+(30, 2, 150, 'Australia', -25.2744, 133.775),
+(31, 1, 150, 'Amsterdam, Paesi Bassi', 52.3702, 4.89517),
+(32, 3, 150, 'Amsterdam, Paesi Bassi', 52.3702, 4.89517),
+(33, 2, 151, 'Amsterdam, Paesi Bassi', 52.3702, 4.89517),
+(34, 1, 151, '[ovunque]', 0, 0),
+(35, 3, 151, '[ovunque]', 0, 0),
+(36, 2, 152, '[ovunque]', 0, 0),
+(37, 1, 152, '[ovunque]', 0, 0),
+(38, 3, 152, '[ovunque]', 0, 0),
+(39, 2, 153, '[ovunque]', 0, 0),
+(40, 1, 153, '[ovunque]', 0, 0),
+(41, 3, 153, '[ovunque]', 0, 0);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_log`
+-- Struttura della tabella `tbl_log`
 --
 
 CREATE TABLE `tbl_log` (
@@ -209,12 +254,12 @@ CREATE TABLE `tbl_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `tbl_log`
+-- Dump dei dati per la tabella `tbl_log`
 --
 
 INSERT INTO `tbl_log` (`IdUtente`, `IdConvenzione`, `Contatore`, `UltimaVisualizzazione`) VALUES
-(1, 1, 12, '2018-04-09 19:24:02'),
-(1, 2, 1, '2018-04-09 19:24:13'),
+(1, 1, 13, '2018-04-10 08:18:51'),
+(1, 2, 2, '2018-04-10 11:30:38'),
 (1, 97, 1, '2018-04-03 21:59:57'),
 (1, 98, 1, '2018-04-03 22:02:22'),
 (1, 99, 1, '2018-04-03 22:05:12'),
@@ -230,13 +275,18 @@ INSERT INTO `tbl_log` (`IdUtente`, `IdConvenzione`, `Contatore`, `UltimaVisualiz
 (1, 143, 1, '2018-04-07 19:38:39'),
 (1, 144, 1, '2018-04-09 19:17:21'),
 (1, 145, 1, '2018-04-09 19:21:03'),
-(1, 146, 1, '2018-04-09 22:19:40'),
-(2, 2, 4, '2018-03-12 00:00:00');
+(1, 146, 2, '2018-04-10 08:19:22'),
+(1, 148, 1, '2018-04-10 08:47:19'),
+(1, 150, 1, '2018-04-10 08:52:04'),
+(1, 151, 1, '2018-04-10 08:51:40'),
+(1, 153, 1, '2018-04-10 11:28:41'),
+(2, 2, 4, '2018-03-12 00:00:00'),
+(17, 153, 1, '2018-04-10 11:14:27');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_regioni`
+-- Struttura della tabella `tbl_regioni`
 --
 
 CREATE TABLE `tbl_regioni` (
@@ -245,7 +295,7 @@ CREATE TABLE `tbl_regioni` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `tbl_regioni`
+-- Dump dei dati per la tabella `tbl_regioni`
 --
 
 INSERT INTO `tbl_regioni` (`Id`, `Nome`) VALUES
@@ -256,7 +306,7 @@ INSERT INTO `tbl_regioni` (`Id`, `Nome`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `tbl_utenti`
+-- Struttura della tabella `tbl_utenti`
 --
 
 CREATE TABLE `tbl_utenti` (
@@ -265,7 +315,7 @@ CREATE TABLE `tbl_utenti` (
   `Nome` varchar(250) NOT NULL,
   `Email` varchar(250) NOT NULL,
   `Password` varchar(250) NOT NULL,
-  `IdRegione` int(11) NOT NULL,
+  `IdRegione` int(11) DEFAULT NULL,
   `Lat` float NOT NULL,
   `Lng` float NOT NULL,
   `IsAmministratore` tinyint(1) NOT NULL,
@@ -273,111 +323,121 @@ CREATE TABLE `tbl_utenti` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `tbl_utenti`
+-- Dump dei dati per la tabella `tbl_utenti`
 --
 
 INSERT INTO `tbl_utenti` (`IdUtente`, `Cognome`, `Nome`, `Email`, `Password`, `IdRegione`, `Lat`, `Lng`, `IsAmministratore`, `Attivo`) VALUES
 (1, 'Admin', 'Stefany', 'aa@gmail.com', '0cc175b9c0f1b6a831c399e269772661', 1, 45.0684, 7.61888, 1, 1),
 (2, 'bb', 'bb', 'bb@gmail.com', '92eb5ffee6ae2fec3ad71c777531578f', 2, 2.2, 2.2, 0, 1),
-(7, 'sdfff', 'sd', 'asff@gmail.com', '4b129f0db87cbbe2245e294a7ea6a233', 3, 45.0674, 7.62637, 0, 1);
+(7, 'sdfff', 'sd', 'asff@gmail.com', '4b129f0db87cbbe2245e294a7ea6a233', 3, 45.0674, 7.62637, 0, 1),
+(16, 'Janet', 'Stefany', 'stefany@gmail.com', '0cc175b9c0f1b6a831c399e269772661', 1, 45.0699, 7.69349, 0, 1),
+(17, 'a', 'a', 'aaaaaa@gmail.com', '0cc175b9c0f1b6a831c399e269772661', 2, 37.2202, -95.6991, 0, 1);
 
 --
--- Indexes for dumped tables
+-- Indici per le tabelle scaricate
 --
 
 --
--- Indexes for table `tbl_allegati`
+-- Indici per le tabelle `tbl_allegati`
 --
 ALTER TABLE `tbl_allegati`
   ADD PRIMARY KEY (`IdAllegato`);
 
 --
--- Indexes for table `tbl_categorie`
+-- Indici per le tabelle `tbl_categorie`
 --
 ALTER TABLE `tbl_categorie`
   ADD PRIMARY KEY (`IdCategoria`);
 
 --
--- Indexes for table `tbl_convenzioni`
+-- Indici per le tabelle `tbl_convenzioni`
 --
 ALTER TABLE `tbl_convenzioni`
   ADD PRIMARY KEY (`IdConvenzione`);
 
 --
--- Indexes for table `tbl_feedback`
+-- Indici per le tabelle `tbl_feedback`
 --
 ALTER TABLE `tbl_feedback`
   ADD PRIMARY KEY (`IdUtente`,`IdConvenzione`);
 
 --
--- Indexes for table `tbl_immagini`
+-- Indici per le tabelle `tbl_immagini`
 --
 ALTER TABLE `tbl_immagini`
   ADD PRIMARY KEY (`IdImmagine`);
 
 --
--- Indexes for table `tbl_indirizzi`
+-- Indici per le tabelle `tbl_indirizzi`
 --
 ALTER TABLE `tbl_indirizzi`
   ADD PRIMARY KEY (`IdIndirizzo`);
 
 --
--- Indexes for table `tbl_log`
+-- Indici per le tabelle `tbl_log`
 --
 ALTER TABLE `tbl_log`
   ADD PRIMARY KEY (`IdUtente`,`IdConvenzione`);
 
 --
--- Indexes for table `tbl_regioni`
+-- Indici per le tabelle `tbl_regioni`
 --
 ALTER TABLE `tbl_regioni`
   ADD PRIMARY KEY (`Id`);
 
 --
--- Indexes for table `tbl_utenti`
+-- Indici per le tabelle `tbl_utenti`
 --
 ALTER TABLE `tbl_utenti`
   ADD PRIMARY KEY (`IdUtente`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT per le tabelle scaricate
 --
 
 --
--- AUTO_INCREMENT for table `tbl_allegati`
+-- AUTO_INCREMENT per la tabella `tbl_allegati`
 --
 ALTER TABLE `tbl_allegati`
-  MODIFY `IdAllegato` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `IdAllegato` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
 --
--- AUTO_INCREMENT for table `tbl_categorie`
+-- AUTO_INCREMENT per la tabella `tbl_categorie`
 --
 ALTER TABLE `tbl_categorie`
-  MODIFY `IdCategoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `IdCategoria` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
 --
--- AUTO_INCREMENT for table `tbl_convenzioni`
+-- AUTO_INCREMENT per la tabella `tbl_convenzioni`
 --
 ALTER TABLE `tbl_convenzioni`
-  MODIFY `IdConvenzione` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=147;
+  MODIFY `IdConvenzione` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=154;
+
 --
--- AUTO_INCREMENT for table `tbl_immagini`
+-- AUTO_INCREMENT per la tabella `tbl_immagini`
 --
 ALTER TABLE `tbl_immagini`
-  MODIFY `IdImmagine` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `IdImmagine` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+
 --
--- AUTO_INCREMENT for table `tbl_indirizzi`
+-- AUTO_INCREMENT per la tabella `tbl_indirizzi`
 --
 ALTER TABLE `tbl_indirizzi`
-  MODIFY `IdIndirizzo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `IdIndirizzo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+
 --
--- AUTO_INCREMENT for table `tbl_regioni`
+-- AUTO_INCREMENT per la tabella `tbl_regioni`
 --
 ALTER TABLE `tbl_regioni`
   MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
 --
--- AUTO_INCREMENT for table `tbl_utenti`
+-- AUTO_INCREMENT per la tabella `tbl_utenti`
 --
 ALTER TABLE `tbl_utenti`
-  MODIFY `IdUtente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `IdUtente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

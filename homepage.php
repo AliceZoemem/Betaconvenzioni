@@ -36,7 +36,6 @@
     }
 
     .conv-wrapper{
-        width:90%;
         min-height:30%;
         height:auto;
         margin-bottom:20px;
@@ -49,6 +48,7 @@
     }
 
     .conv-cover{
+        box-shadow:0 2px 6px rgba(0,0,0,0.8);
         background-position-x:center;   
         background-position-y:center;
         background-size:cover;   
@@ -62,7 +62,13 @@
         padding-bottom:0;
         padding-left:0;
         padding-right:0;
-        border:1px solid #333;
+        transition:0.2s;
+    }
+
+    .conv-cover:hover{
+        cursor:pointer;
+        -webkit-transform: scale(1.03);
+		transform: scale(1.03);        
     }
 
     .conv-content{
@@ -90,24 +96,10 @@
 	}
 
     .add-bar{
-        width:100%;
-        text-align:center;
+        width:80%;
+        margin-left:10%;
         display:block;
         height:30px;
-    }
-
-    .add-bar img{
-        max-height:100%;
-        -webkit-transition: 0.2s;
-        -moz-transition: 0.2s;
-        transition: 0.2s;
-    }
-
-    .add-bar img:hover{
-        cursor:pointer;
-        -ms-transform: scale(1.1); /* IE 9 */
-        -webkit-transform: scale(1.1); /* Safari */
-        transform: scale(1.1);
     }
 
     .mce-notification-inner, #mceu_31{
@@ -162,9 +154,26 @@
         z-index:0;
     }
 
+    
+    /* ~ ~ Responsiveness ~ ~ */
+    @media all and (max-width: 1000px) {    
+        .conv-list{
+            padding: 0 5%;
+        }
+
+        .conv-cover{
+            width:80%;
+        }
+
+        .filters-controls .form-control{
+            max-width:45%;
+        }
+    }
+
 </style>
     <div class="add-bar">
-        <img src="img/add.png" onclick="ShowAddPopup();" id="btnAddCoupon" />
+        <button class="btn btn-warning" onclick="ShowAddPopup();" id="btnAddCoupon">Aggiungi convenzione</button>
+        <button class="btn btn-secondary" onclick="ShowCategoryPopup();" id="btnManageCategory">Gestisci categorie</button>
     </div>
 
 <div class='filters-bar'>
@@ -315,13 +324,17 @@
                         
                         /* close connection */
                         AbbattiConnessione($conn);
-                        ?>
+                    ?>
                 </select>
+                Immagini<br/>
                 <input type="file" id="FileUploader" accept="image/*" class="form-control" multiple />
+                Allegati<br/>
+                <input type="file" id="AttachmentsUploader" class="form-control" multiple />
                 <textarea name="txtarea" id="txtDescrizione" placeholder="Descrizione">
                 </textarea>
             </div>
             <div class="modal-footer">
+                <img src="img/throbber.gif" id="Throbber" style="display:none; max-height:100px;" />
                 <input type="button" name="change" value="Aggiungi" class="btn btn-primary" onclick="AddCoupon();" />
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
             </div>
@@ -329,7 +342,65 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal Manage cagegories -->
+<div class="modal fade" id="modalCategory" tabindex="-1" role="dialog" aria-labelledby="titleLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="titleLabel">Gestisci categorie</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="divAddCategory" style="display:block;">
+            <input type="text" class="form-control" id="txtNewCategory" placeholder="Nuova categoria..." />
+            <br/>
+            <button class="btn btn-primary" onclick="AddCategory()">Aggiungi</button>
+        </div>
+        <div id="divEditCategory" style="display:none;">
+            <input type="text" class="form-control" id="txtEditCategory" />
+            <br/>
+            <button class="btn btn-primary" onclick="EditCategory()">Conferma</button>
+            <button class="btn btn-secondary" onclick="CancelEditCategory()">Annulla</button>
+        </div>
+
+        <br/><br/>
+        <h3>Categorie esistenti </h3>
+        <?php
+            $conn = InstauraConnessione();
+            
+            /* check connection */
+            if (mysqli_connect_errno()) {
+                printf("Connect failed: %s\n", mysqli_connect_error());
+                exit();
+            }
+            
+            $query = "SELECT * FROM tbl_categorie ORDER BY Nome ASC";
+            
+            if ($result = mysqli_query($conn, $query)) {
+                
+                /* fetch associative array */
+                while ($row = mysqli_fetch_array($result)) {
+                    $idCategoria = $row['IdCategoria'];
+                    $nome = $row['Nome'];
+                    
+                    echo "$nome  <b class='btn btn-link' onclick=\"StartEditCategory($idCategoria, '$nome')\">[modifica]</b><b class='btn btn-link' onclick='DeleteCategory($idCategoria)'>[elimina]</b><br/>";
+                }
+            }
+            
+            /* close connection */
+            AbbattiConnessione($conn);
+        ?>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal delete alert -->
 <div class="modal fade" id="DeletePopup" tabindex="-1" role="dialog" aria-labelledby="titleLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -402,6 +473,7 @@ $(document).ready(function (){
 
                 if(data.admin != 1){
                     $('#btnAddCoupon').remove();
+                    $('#btnManageCategory').remove();
                     $('.btn-delete-coupon').each(function () {
                         $(this).remove();
                     });
@@ -470,6 +542,8 @@ function RimuoviFiltri(){
 }
 
 function AddCoupon() {
+    $('#Throbber').show();
+
     var titolo = $('#txtTitolo').val();
     var scadenza = $('#txtScadenza').val();
     var categoria = $('#ddlNewCategoria').val();
@@ -530,6 +604,13 @@ function AddCoupon() {
             if(ins <= 0)
                 fd.append("FileUploader[]", null);
 
+            var ins = document.getElementById('AttachmentsUploader').files.length;
+            for (var x = 0; x < ins; x++) 
+                fd.append("Attachments[]", document.getElementById('AttachmentsUploader').files[x]);
+
+            if(ins <= 0)
+                fd.append("Attachments[]", null);
+
             fd.append("id", data);
 
             $.ajax({
@@ -585,8 +666,94 @@ function ConfirmDeleteCoupon() {
     }
 }
 
+function AddCategory() {
+    var categoria = $('#txtNewCategory').val(); 
+
+    if(categoria){
+        $.ajax({
+            url : 'functions/functions.php?function=AddCategory',
+            type : 'POST',
+            data : {
+                Categoria: categoria
+            },
+            success : function(data) { 
+                data = getHtmlFreeResponse(data);
+                console.log(data);
+                window.location.href = window.location.href;
+            },
+            error : function(request, error) {
+                console.log("Error", request, error);
+            }
+        });
+    }
+}
+
+function StartEditCategory(id, nome) {
+    $('#divAddCategory').hide();
+    $('#divEditCategory').fadeIn();
+
+    $('#txtEditCategory').val(nome);
+    $('#txtEditCategory').data('category', id);
+}
+
+function CancelEditCategory(id, nome) {
+    $('#divEditCategory').hide();
+    $('#divAddCategory').fadeIn();
+
+    $('#txtEditCategory').val('');
+    $('#txtEditCategory').data('category', '');
+}
+
+function EditCategory(id) {
+    var id = $('#txtEditCategory').data('category');
+    var nome = $('#txtEditCategory').val();
+
+    if(id && nome){
+        $.ajax({
+            url : 'functions/functions.php?function=EditCategory',
+            type : 'POST',
+            data : {
+                Id: id, 
+                Categoria: nome
+            },
+            success : function(data) { 
+                data = getHtmlFreeResponse(data);
+                console.log(data);
+                window.location.href = window.location.href;
+            },
+            error : function(request, error) {
+                console.log("Error", request, error);
+            }
+        });
+    }
+}
+
+function DeleteCategory(id) {
+    if(id){
+        $.ajax({
+            url : 'functions/functions.php?function=DeleteCategory',
+            type : 'POST',
+            data : {
+                Categoria: id
+            },
+            success : function(data) { 
+                data = getHtmlFreeResponse(data);
+                console.log(data);
+                window.location.href = window.location.href;
+            },
+            error : function(request, error) {
+                console.log("Error", request, error);
+            }
+        });
+    }
+}
+
 function ShowAddPopup(){
     $('#modalAddCoupon').modal('show');
+}
+
+function ShowCategoryPopup(){
+    $('#modalCategory').modal('show');
 }
 
 function AdjustStyle(){
